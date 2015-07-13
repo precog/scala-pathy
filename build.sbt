@@ -7,6 +7,10 @@ import de.heikoseeberger.sbtheader.HeaderPlugin
 //   "scala" -> Apache2_0("2014 - 2015", "SlamData Inc."),
 //   "java"  -> Apache2_0("2014 - 2015", "SlamData Inc."))
 
+organization := "slamdata"
+
+version := "0.0.1-SNAPSHOT"
+
 scalaVersion := "2.11.6"
 
 libraryDependencies ++= Seq(
