@@ -3,6 +3,7 @@ package slamdata.pathy
 import org.specs2.mutable._
 
 class PathSpecs extends Specification {
+  import Path._
 
   "two directories" in {
     unsafePrintPath(dir("foo") </> file("bar")) must_== "./foo/bar"

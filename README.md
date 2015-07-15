@@ -9,7 +9,7 @@ Ported from [purescript-pathy](slamengine/purescript-pathy)
 val fullPath = RootDir </> dir("baz") </> file("foo.png")
 ```
 
-See the [examples file](/src/examples/scala/Examples.scala) for more.
+See the [examples file](/src/test/scala/Examples.scala) for more.
 
 ## Getting Started
 
@@ -18,5 +18,5 @@ See the [examples file](/src/examples/scala/Examples.scala) for more.
 *TODO*
 
 ```scala
-import slamdata.pathy._ 
+import slamdata.pathy._, Path._
 ``

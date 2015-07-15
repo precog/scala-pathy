@@ -1,7 +1,10 @@
-package slamdata
+package slamdata.pathy
 
-package object pathy {
-
+sealed trait Path[+B,+T,+S] {
+  def isAbsolute: Boolean
+  def isRelative = !isAbsolute
+}
+object Path {
   sealed trait Rel
   sealed trait Abs
 
@@ -26,11 +29,6 @@ package object pathy {
       FileName(dropExtension.value + "." + f(extension))
   }
   final case class DirName(value: String) extends AnyVal
-
-  sealed trait Path[+B,+T,+S] {
-    def isAbsolute: Boolean
-    def isRelative = !isAbsolute
-  }
 
   // Note: this ADT allows invalid paths, but the exposed functions
   // of the package do not.
