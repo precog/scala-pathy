@@ -1,5 +1,7 @@
 package slamdata.pathy
 
+import scalaz._, Scalaz._
+
 sealed trait Path[+B,+T,+S] {
   def isAbsolute: Boolean
   def isRelative = !isAbsolute
@@ -81,8 +83,20 @@ object Path {
   }
 
   implicit class PathOps[B,T,S](path: Path[B,T,S]) {
-    def relativeTo[SS](dir: Path[B, Dir, SS]): Option[Path[Rel, T, SS]] =
-      ???
+    def relativeTo[SS](dir: Path[B, Dir, SS]): Option[Path[Rel, T, SS]] = {
+      def go[B,T,S,SS](p1: Path[B,T,S], p2: Path[B,Dir,SS]): Option[Path[Rel,T,SS]] =
+        if (identicalPath(p1, p2)) Some(Current)
+        else peel(p1) match {
+          case None => (p1, p2) match {
+            case (Root, Root)       => Some(Current)
+            case (Current, Current) => Some(Current)
+            case _                  => None
+          }
+          case Some((p1p, v)) =>
+            go(p1p, p2).map(p => p </> v.fold(DirIn(Current, _), FileIn(Current, _)))
+          }
+      go(canonicalize(path), canonicalize(dir))
+    }
   }
 
   implicit class DirOps[B,S](dir: Path[B, Dir, S]) {
@@ -117,9 +131,26 @@ object Path {
       renameFile(file, name => name.changeExtension(_ => ext))
   }
 
-  def parentDir1[B,T,S](path: Path[B,T,S]): Path[B, Dir, Unsandboxed] =
-    // ParentIn <<< unsafeCoerceType <<< unsandbox
-    ParentIn(unsafeCoerceType(unsandbox(path)))
+  def peel[B,T,S](path: Path[B,T,S]): Option[(Path[B, Dir, S], DirName \/ FileName)] = path match {
+    case Current         => None
+    case Root            => None
+    case p @ ParentIn(_) =>
+      val (c, p1) = canonicalize1(p)
+      if (c) peel(p1) else None
+    case DirIn(p, d)     => Some(unsafeCoerceType(p) -> -\/ (d))
+    case FileIn(p, f)    => Some(unsafeCoerceType(p) ->  \/-(f))
+  }
+
+  def depth[B,T,S](path: Path[B,T,S]): Int = path match {
+    case Current      => 0
+    case Root         => 0
+    case ParentIn(p)  => depth(p) - 1
+    case FileIn(p, _) => depth(p) + 1
+    case DirIn(p, _)  => depth(p) + 1
+  }
+
+  def parentDir[B,T,S](path: Path[B,T,S]): Option[Path[B,Dir,S]] =
+    peel(path).map(_._1)
 
   def unsandbox[B,T,S](path: Path[B,T,S]): Path[B, T, Unsandboxed] = path match {
     case Current      => Current
@@ -129,7 +160,10 @@ object Path {
     case FileIn(p, f) => FileIn(unsandbox(p), f)
   }
 
-  def unsafeCoerceType[B,T,TT,S](path: Path[B,T,S]): Path[B,TT,S] = path match {
+  def parentDir1[B,T,S](path: Path[B,T,S]): Path[B, Dir, Unsandboxed] =
+    ParentIn(unsafeCoerceType(unsandbox(path)))
+
+  private def unsafeCoerceType[B,T,TT,S](path: Path[B,T,S]): Path[B,TT,S] = path match {
     case Current      => Current
     case Root         => Root
     case ParentIn(p)  => ParentIn(unsafeCoerceType(p))
@@ -190,7 +224,67 @@ object Path {
   def printPath[B,T](path: Path[B, T, Sandboxed]): String =
     unsafePrintPath(path)
 
+  def identicalPath[B,T,S,BB,TT,SS](p1: Path[B,T,S], p2: Path[BB,TT,SS]): Boolean =
+    p1.shows == p2.shows
+
   /** Synonym for relativeTo, constrained to sandboxed dirs, and with a more evocative name. */
   def sandbox[B,T,S](dir: Path[B, Dir, Sandboxed], path: Path[B,T,S]): Option[Path[Rel,T,Sandboxed]] =
     path relativeTo dir
+
+  private def parsePath[Z](
+    rf: RelFile[Unsandboxed] => Z,
+    af: AbsFile[Unsandboxed] => Z,
+    rd: RelDir[Unsandboxed] => Z,
+    ad: AbsDir[Unsandboxed] => Z)(str: String): Z =
+  {
+    val segs = str.split("/")
+    val last = segs.length - 1
+    val isAbs = str.startsWith("/")
+    val isFile = !str.endsWith("/")
+    val tuples = segs.zipWithIndex
+
+    def folder[B,T,S](base: Path[B,T,S], t: (String, Int)): Path[B,T,S] = t match {
+      case (".", _)  => base
+      case ("", _)   => base
+      case ("..", _) => ParentIn(base)
+      case (seg, idx)  =>
+        if (isFile && idx == last)
+          FileIn(base, FileName(seg))
+        else
+          DirIn(base, DirName(seg))
+    }
+
+    if (str == "")
+      rd(Current)
+    else if (isAbs && isFile)
+      af(tuples.foldLeft[AbsFile[Unsandboxed]](Root)(folder))
+    else if (isAbs && !isFile)
+      ad(tuples.foldLeft[AbsDir[Unsandboxed]](Root)(folder))
+    else if (!isAbs && isFile)
+      rf(tuples.foldLeft[RelFile[Unsandboxed]](Current)(folder))
+    else
+      rd(tuples.foldLeft[RelDir[Unsandboxed]](Current)(folder))
+  }
+
+  val parseRelFile: String => Option[RelFile[Unsandboxed]] =
+    parsePath[Option[RelFile[Unsandboxed]]](Some(_), _ => None, _ => None, _ => None)
+
+  val parseAbsFile: String => Option[AbsFile[Unsandboxed]] =
+    parsePath[Option[AbsFile[Unsandboxed]]](_ => None, Some(_), _ => None, _ => None)
+
+  val parseRelDir: String => Option[RelDir[Unsandboxed]] =
+    parsePath[Option[RelDir[Unsandboxed]]](_ => None, _ => None, Some(_), _ => None)
+
+  val parseAbsDir: String => Option[AbsDir[Unsandboxed]] =
+    parsePath[Option[AbsDir[Unsandboxed]]](_ => None, _ => None, _ => None, Some(_))
+
+  implicit def PathShow[B,T,S]: Show[Path[B,T,S]] = new Show[Path[B,T,S]] {
+    override def show(v: Path[B,T,S]) = v match {
+      case Current                => "currentDir"
+      case Root                   => "rootDir"
+      case ParentIn(p)            => "parentDir(" + p.show + ")"
+      case FileIn(p, FileName(f)) => p.show + " </> file(" + f.show + ")"
+      case DirIn(p, DirName(d))   => p.show + " </> dir(" + d.show + ")"
+    }
+  }
 }

@@ -57,41 +57,69 @@ class PathSpecs extends Specification {
     unsafePrintPath(renameFile(file("image.png"), _.dropExtension)) must_== "./image"
   }
 
+  "sandbox - sandbox absolute dir to one level higher" in {
+    sandbox(rootDir </> dir("foo"), rootDir </> dir("foo") </> dir("bar")) must beSome.which {
+      unsafePrintPath(_) must_== "./bar/"
+    }
+  }
 
-  /*
-  TODO: port the rest
+  "depth - negative" in {
+    depth(parentDir1(parentDir1(parentDir1(currentDir)))) must_== -3
+  }
 
-    test' "sandbox - sandbox absolute dir to one level higher"
-          (fromJust $ sandbox (rootDir </> dir "foo") (rootDir </> dir "foo" </> dir "bar")) "./bar/"
+  "parseRelFile - image.png" in {
+    parseRelFile("image.png") must beSome(file("image.png"))
+  }
 
-    test "depth - negative" (depth (parentDir' $ parentDir' $ parentDir' $ currentDir)) (-3)
+  "parseRelFile - ./image.png" in {
+    parseRelFile("./image.png") must beSome(file("image.png"))
+  }
 
-    test "parseRelFile - image.png" (parseRelFile "image.png") (Just $ file "image.png")
+  "parseRelFile - foo/image.png" in {
+    parseRelFile("foo/image.png") must beSome(dir("foo") </> file("image.png"))
+  }
 
-    test "parseRelFile - ./image.png" (parseRelFile "./image.png") (Just $ file "image.png")
+  "parseRelFile - ../foo/image.png" in {
+    parseRelFile("../foo/image.png") must beSome(currentDir <::> dir("foo") </> file("image.png"))
+  }
 
-    test "parseRelFile - foo/image.png" (parseRelFile "foo/image.png") (Just $ dir "foo" </> file "image.png")
+  "parseAbsFile - /image.png" in {
+    parseAbsFile("/image.png") must beSome(rootDir </> file("image.png"))
+  }
 
-    test "parseRelFile - ../foo/image.png" (parseRelFile "../foo/image.png") (Just $ currentDir <..> dir "foo" </> file "image.png")
+  "parseAbsFile - /foo/image.png" in {
+    parseAbsFile("/foo/image.png") must beSome(rootDir </> dir("foo") </> file("image.png"))
+  }
 
-    test "parseAbsFile - /image.png" (parseAbsFile "/image.png") (Just $ rootDir </> file "image.png")
+  "parseRelDir - empty string" in {
+    parseRelDir("") must beSome(currentDir[Sandboxed])
+  }
 
-    test "parseAbsFile - /foo/image.png" (parseAbsFile "/foo/image.png") (Just $ rootDir </> dir "foo" </> file "image.png")
+  "parseRelDir - ./../" in {
+    parseRelDir("./../") must beSome(currentDir <::> currentDir)
+  }
 
-    test "parseRelDir - empty string" (parseRelDir "") (Just $ currentDir)
+  "parseRelDir - foo/" in {
+    parseRelDir("foo/") must beSome(dir("foo"))
+  }
 
-    test "parseRelDir - ./../" (parseRelDir "./../") (Just $ currentDir <..> currentDir)
+  "parseRelDir - foo/bar/" in {
+    parseRelDir("foo/bar/") must beSome(dir("foo") </> dir("bar"))
+  }
 
-    test "parseRelDir - foo/" (parseRelDir "foo/") (Just $ dir "foo")
+  "parseRelDir - ./foo/bar/" in {
+    parseRelDir("./foo/bar/") must beSome(dir("foo") </> dir("bar"))
+  }
 
-    test "parseRelDir - foo/bar" (parseRelDir "foo/bar/") (Just $ dir "foo" </> dir "bar")
+  "parseAbsDir - /" in {
+    parseAbsDir("/") must beSome(rootDir[Sandboxed])
+  }
 
-    test "parseRelDir - ./foo/bar" (parseRelDir "./foo/bar/") (Just $ dir "foo" </> dir "bar")
+  "parseAbsDir - /foo/" in {
+    parseAbsDir("/foo/") must beSome(rootDir </> dir("foo"))
+  }
 
-    test "parseAbsDir - /" (parseAbsDir "/") (Just $ rootDir)
-
-    test "parseAbsDir - /foo/" (parseAbsDir "/foo/") (Just $ rootDir </> dir "foo")
-
-    test "parseAbsDir - /foo/bar" (parseAbsDir "/foo/bar/") (Just $ rootDir </> dir "foo" </> dir "bar")
-  */
+  "parseAbsDir - /foo/bar/" in {
+    parseAbsDir("/foo/bar/") must beSome(rootDir </> dir("foo") </> dir("bar"))
+  }
 }
