@@ -1,5 +1,6 @@
 package slamdata.pathy
 
+import scala.annotation.tailrec
 import scalaz._, Scalaz._
 
 sealed trait Path[+B,+T,+S] {
@@ -54,18 +55,6 @@ object Path {
   type AbsFile[S] = Path[Abs, File, S]
   type RelDir[S] = Path[Rel, Dir, S]
   type AbsDir[S] = Path[Abs, Dir, S]
-
-  trait Escaper {
-    def escape(segment: String): String
-  }
-
-  val nonEscaper = new Escaper {
-    def escape(segment: String) = ???
-  }
-
-  val posixEscaper = new Escaper {
-    def escape(segment: String) = ???
-  }
 
   def fileName[B,S](path: Path[B, File, S]): FileName = path match {
     case FileIn(_, name) => name
@@ -131,6 +120,22 @@ object Path {
       renameFile(file, name => name.changeExtension(_ => ext))
   }
 
+  def maybeDir[B,T,S](path: Path[B,T,S]): Option[Path[B, Dir, S]] = path match {
+    case Current      => Some(Current)
+    case Root         => Some(Root)
+    case ParentIn(p)  => Some(ParentIn(unsafeCoerceType(p)))
+    case FileIn(_, _) => None
+    case DirIn(p, d)  => Some(DirIn(unsafeCoerceType(p), d))
+  }
+
+  def maybeFile[B,T,S](path: Path[B,T,S]): Option[Path[B, File, S]] = path match {
+    case Current      => None
+    case Root         => None
+    case ParentIn(p)  => None
+    case FileIn(p, f) => maybeDir(p) map (_ </> file1(f))
+    case DirIn(p, d)  => None
+  }
+
   def peel[B,T,S](path: Path[B,T,S]): Option[(Path[B, Dir, S], DirName \/ FileName)] = path match {
     case Current         => None
     case Root            => None
@@ -159,6 +164,10 @@ object Path {
     case DirIn(p, d)  => DirIn(unsandbox(p), d)
     case FileIn(p, f) => FileIn(unsandbox(p), f)
   }
+
+  /** Synonym for relativeTo, constrained to sandboxed dirs, and with a more evocative name. */
+  def sandbox[B,T,S](dir: Path[B, Dir, Sandboxed], path: Path[B,T,S]): Option[Path[Rel,T,Sandboxed]] =
+    path relativeTo dir
 
   def parentDir1[B,T,S](path: Path[B,T,S]): Path[B, Dir, Unsandboxed] =
     ParentIn(unsafeCoerceType(unsandbox(path)))
@@ -207,76 +216,111 @@ object Path {
         ch -> DirIn(p1, d)
     }
 
-  private def unsafePrintPath1[B,T,S](path: Path[B,T,S], esc: Escaper): String =
-    path match {
-      case Current                               => "./"
-      case Root                                  => "/"
-      case ParentIn(p)                           => unsafePrintPath1(p, esc) ++ "../"
-      case DirIn(p @ FileIn(_, _), DirName(d))   => unsafePrintPath1(p, esc) + "/" + d + "/"
-      case DirIn(p, DirName(d))                  => unsafePrintPath1(p, esc) + d + "/"
-      case FileIn(p @ FileIn(_, _), FileName(f)) => unsafePrintPath1(p, esc) + "/" + f
-      case FileIn(p, FileName(f))                => unsafePrintPath1(p, esc) + f
+  def flatten[X](root: => X, currentDir: => X, parentDir: => X, dirName: String => X, fileName: String => X, path: Path[_, _, _]): IList[X] = {
+    @tailrec
+    def go(xs: IList[X], at: Path[_, _, _]): IList[X] = at match {
+      case Current                => currentDir :: xs
+      case Root                   => root :: xs
+      case ParentIn(p)            => go(parentDir :: xs, p)
+      case DirIn(p, DirName(d))   => go(dirName(d) :: xs, p)
+      case FileIn(p, FileName(f)) => go(fileName(f) :: xs, p)
     }
 
-  def unsafePrintPath[B,T,S](path: Path[B,T,S]): String =
-    unsafePrintPath1(path, posixEscaper)
-
-  def printPath[B,T](path: Path[B, T, Sandboxed]): String =
-    unsafePrintPath(path)
+    go(IList.empty, path)
+  }
 
   def identicalPath[B,T,S,BB,TT,SS](p1: Path[B,T,S], p2: Path[BB,TT,SS]): Boolean =
     p1.shows == p2.shows
 
-  /** Synonym for relativeTo, constrained to sandboxed dirs, and with a more evocative name. */
-  def sandbox[B,T,S](dir: Path[B, Dir, Sandboxed], path: Path[B,T,S]): Option[Path[Rel,T,Sandboxed]] =
-    path relativeTo dir
+  val posixCodec = PathCodec placeholder '/'
 
-  private def parsePath[Z](
-    rf: RelFile[Unsandboxed] => Z,
-    af: AbsFile[Unsandboxed] => Z,
-    rd: RelDir[Unsandboxed] => Z,
-    ad: AbsDir[Unsandboxed] => Z)(str: String): Z =
-  {
-    val segs = str.split("/")
-    val last = segs.length - 1
-    val isAbs = str.startsWith("/")
-    val isFile = !str.endsWith("/")
-    val tuples = segs.zipWithIndex
+  val windowsCodec = PathCodec placeholder '\\'
 
-    def folder[B,T,S](base: Path[B,T,S], t: (String, Int)): Path[B,T,S] = t match {
-      case (".", _)  => base
-      case ("", _)   => base
-      case ("..", _) => ParentIn(base)
-      case (seg, idx)  =>
-        if (isFile && idx == last)
-          FileIn(base, FileName(seg))
-        else
-          DirIn(base, DirName(seg))
+  final case class PathCodec(separator: Char, escape: String => String, unescape: String => String) {
+
+    def unsafePrintPath(path: Path[_, _, _]): String = {
+      val s = flatten("", ".", "..", escape, escape, path)
+                .intersperse(separator.toString)
+                .fold
+
+      maybeDir(path) ? (s + separator) | s
     }
 
-    if (str == "")
-      rd(Current)
-    else if (isAbs && isFile)
-      af(tuples.foldLeft[AbsFile[Unsandboxed]](Root)(folder))
-    else if (isAbs && !isFile)
-      ad(tuples.foldLeft[AbsDir[Unsandboxed]](Root)(folder))
-    else if (!isAbs && isFile)
-      rf(tuples.foldLeft[RelFile[Unsandboxed]](Current)(folder))
-    else
-      rd(tuples.foldLeft[RelDir[Unsandboxed]](Current)(folder))
+    def printPath[B, T](path: Path[B, T, Sandboxed]): String =
+      unsafePrintPath(path)
+
+    def parsePath[Z](
+      rf: RelFile[Unsandboxed] => Z,
+      af: AbsFile[Unsandboxed] => Z,
+      rd: RelDir[Unsandboxed] => Z,
+      ad: AbsDir[Unsandboxed] => Z)(str: String): Z =
+    {
+      val segs = str.split(separator)
+      val last = segs.length - 1
+      val isAbs = str.startsWith(separator.toString)
+      val isFile = !str.endsWith(separator.toString)
+      val tuples = segs.zipWithIndex
+
+      def folder[B,T,S](base: Path[B,T,S], t: (String, Int)): Path[B,T,S] = t match {
+        case ("", _)    => base
+        case (".", _)   => base
+        case ("..", _)  => ParentIn(base)
+        case (seg, idx) =>
+          if (isFile && idx == last)
+            FileIn(base, FileName(unescape(seg)))
+          else
+            DirIn(base, DirName(unescape(seg)))
+      }
+
+      if (str == "")
+        rd(Current)
+      else if (isAbs && isFile)
+        af(tuples.foldLeft[AbsFile[Unsandboxed]](Root)(folder))
+      else if (isAbs && !isFile)
+        ad(tuples.foldLeft[AbsDir[Unsandboxed]](Root)(folder))
+      else if (!isAbs && isFile)
+        rf(tuples.foldLeft[RelFile[Unsandboxed]](Current)(folder))
+      else
+        rd(tuples.foldLeft[RelDir[Unsandboxed]](Current)(folder))
+    }
+
+    val parseRelFile: String => Option[RelFile[Unsandboxed]] =
+      parsePath[Option[RelFile[Unsandboxed]]](Some(_), _ => None, _ => None, _ => None)
+
+    val parseAbsFile: String => Option[AbsFile[Unsandboxed]] =
+      parsePath[Option[AbsFile[Unsandboxed]]](_ => None, Some(_), _ => None, _ => None)
+
+    val parseRelDir: String => Option[RelDir[Unsandboxed]] =
+      parsePath[Option[RelDir[Unsandboxed]]](_ => None, _ => None, Some(_), _ => None)
+
+    val parseAbsDir: String => Option[AbsDir[Unsandboxed]] =
+      parsePath[Option[AbsDir[Unsandboxed]]](_ => None, _ => None, _ => None, Some(_))
   }
 
-  val parseRelFile: String => Option[RelFile[Unsandboxed]] =
-    parsePath[Option[RelFile[Unsandboxed]]](Some(_), _ => None, _ => None, _ => None)
+  object PathCodec {
 
-  val parseAbsFile: String => Option[AbsFile[Unsandboxed]] =
-    parsePath[Option[AbsFile[Unsandboxed]]](_ => None, Some(_), _ => None, _ => None)
+    /**
+     * The placeholder codec, replaces literal instances of the separator
+     * in segments with a placeholder as well as segments equal to either of the
+     * relative dir literals, "." and "..".
+     */
+    def placeholder(sep: Char): PathCodec = {
+      val escapeSep = (_: String).replaceAllLiterally(sep.toString, $sep$)
+      val unescapeSep = (_: String).replaceAllLiterally($sep$, sep.toString)
 
-  val parseRelDir: String => Option[RelDir[Unsandboxed]] =
-    parsePath[Option[RelDir[Unsandboxed]]](_ => None, _ => None, Some(_), _ => None)
+      PathCodec(sep, escapeRel compose escapeSep, unescapeSep compose unescapeRel)
+    }
 
-  val parseAbsDir: String => Option[AbsDir[Unsandboxed]] =
-    parsePath[Option[AbsDir[Unsandboxed]]](_ => None, _ => None, _ => None, Some(_))
+    private val escapeRel = (s: String) =>
+      if (s == "..") $dotdot$ else if (s == ".") $dot$ else s
+
+    private val unescapeRel = (s: String) =>
+      if (s == $dotdot$) ".." else if (s == $dot$) "." else s
+
+    private val $sep$ = "$sep$"
+    private val $dot$ = "$dot$"
+    private val $dotdot$ = "$dotdot$"
+  }
 
   implicit def PathShow[B,T,S]: Show[Path[B,T,S]] = new Show[Path[B,T,S]] {
     override def show(v: Path[B,T,S]) = v match {

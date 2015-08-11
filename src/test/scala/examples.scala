@@ -2,6 +2,7 @@ import slamdata.pathy._, Path._
 import scalaz._, Scalaz._
 
 object Examples extends App {
+  import posixCodec._
 
   println(FileName("foo.png").extension)
   println(FileName("foo.png").dropExtension)

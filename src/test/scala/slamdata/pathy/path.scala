@@ -4,6 +4,7 @@ import org.specs2.mutable._
 
 class PathSpecs extends Specification {
   import Path._
+  import posixCodec._
 
   "two directories" in {
     unsafePrintPath(dir("foo") </> file("bar")) must_== "./foo/bar"
@@ -92,7 +93,7 @@ class PathSpecs extends Specification {
   }
 
   "parseRelDir - empty string" in {
-    parseRelDir("") must beSome(currentDir[Sandboxed])
+    parseRelDir("") must beSome(currentDir[Unsandboxed])
   }
 
   "parseRelDir - ./../" in {
@@ -112,7 +113,7 @@ class PathSpecs extends Specification {
   }
 
   "parseAbsDir - /" in {
-    parseAbsDir("/") must beSome(rootDir[Sandboxed])
+    parseAbsDir("/") must beSome(rootDir[Unsandboxed])
   }
 
   "parseAbsDir - /foo/" in {
@@ -121,5 +122,31 @@ class PathSpecs extends Specification {
 
   "parseAbsDir - /foo/bar/" in {
     parseAbsDir("/foo/bar/") must beSome(rootDir </> dir("foo") </> dir("bar"))
+  }
+
+  "placeholder codec" in {
+    "printPath - replaces separator in segments with placeholder" in {
+      unsafePrintPath(dir("foo/bar") </> dir("baz") </> file("qu/ux.txt")) must_== "./foo$sep$bar/baz/qu$sep$ux.txt"
+    }
+
+    "printPath - replaces single dot dir name with placeholder" in {
+      unsafePrintPath(dir(".") </> file("config")) must_== "./$dot$/config"
+    }
+
+    "printPath - replaces double dot dir name with placeholder" in {
+      unsafePrintPath(dir("foo") </> dir("..") </> file("config")) must_== "./foo/$dotdot$/config"
+    }
+
+    "parsePath - reads separator ph in segments" in {
+      parseRelDir("foo/$sep$/bar/") must beSome(dir("foo") </> dir("/") </> dir("bar"))
+    }
+
+    "parsePath - reads single dot ph in segments" in {
+      parseRelFile("foo/$dot$/bar") must beSome(dir("foo") </> dir(".") </> file("bar"))
+    }
+
+    "parsePath - reads double dot separator in segments" in {
+      parseRelFile("foo/bar/$dotdot$") must beSome(dir("foo") </> dir("bar") </> file(".."))
+    }
   }
 }
