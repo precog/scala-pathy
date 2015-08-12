@@ -7,6 +7,7 @@ sealed trait Path[+B,+T,+S] {
   def isAbsolute: Boolean
   def isRelative = !isAbsolute
 }
+
 object Path {
   sealed trait Rel
   sealed trait Abs
@@ -31,6 +32,7 @@ object Path {
     def changeExtension(f: String => String): FileName =
       FileName(dropExtension.value + "." + f(extension))
   }
+
   final case class DirName(value: String) extends AnyVal
 
   // Note: this ADT allows invalid paths, but the exposed functions
@@ -56,15 +58,18 @@ object Path {
   type RelDir[S] = Path[Rel, Dir, S]
   type AbsDir[S] = Path[Abs, Dir, S]
 
+  def file[S](name: String): Path[Rel, File, S] = file1(FileName(name))
+
+  def file1[S](name: FileName): Path[Rel, File, S] = FileIn(Current, name)
+
   def fileName[B,S](path: Path[B, File, S]): FileName = path match {
     case FileIn(_, name) => name
-    case _               => FileName("")
+    case _               => sys.error("impossible!")
   }
-  def file[S](name: String): Path[Rel, File, S] = file1(FileName(name))
-  private def file1[S](name: FileName): Path[Rel, File, S] = FileIn(Current, name)
 
   def dir[S](name: String): Path[Rel, Dir, S] = dir1(DirName(name))
-  private def dir1[S](name: DirName): Path[Rel, Dir, S] = DirIn(Current, name)
+
+  def dir1[S](name: DirName): Path[Rel, Dir, S] = DirIn(Current, name)
 
   def dirName[B,S](path: Path[B, Dir, S]): Option[DirName] = path match {
     case DirIn(_, name) => Some(name)
@@ -181,6 +186,7 @@ object Path {
   }
 
   def currentDir[S]: Path[Rel, Dir, S] = Current
+
   def rootDir[S]: Path[Abs, Dir, S] = Root
 
   def renameFile[B,S](path: Path[B, File, S], f: FileName => FileName): Path[B, File, S] =
