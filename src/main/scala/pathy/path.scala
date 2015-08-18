@@ -317,6 +317,18 @@ object Path {
 
     val parseAbsDir: String => Option[AbsDir[Unsandboxed]] =
       parsePath[Option[AbsDir[Unsandboxed]]](_ => None, _ => None, _ => None, Some(_))
+
+    private def asDir[B,S](path: Path[B, File, S]): Path[B, Dir, S] = path match {
+      case FileIn(p, FileName(n)) => DirIn(unsafeCoerceType(p), DirName(n))
+      case _ => sys.error("impossible!")
+    }
+    
+    val parseRelAsDir: String => Option[RelDir[Unsandboxed]] =
+      parsePath[Option[RelDir[Unsandboxed]]](p => Some(asDir(p)), _ => None, Some(_), _ => None)
+    
+    val parseAbsAsDir: String => Option[AbsDir[Unsandboxed]] =
+      parsePath[Option[AbsDir[Unsandboxed]]](_ => None, p => Some(asDir(p)), _ => None, Some(_))
+    
   }
 
   object PathCodec {

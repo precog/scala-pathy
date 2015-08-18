@@ -100,12 +100,28 @@ class PathSpecs extends Specification {
     parseRelFile("../foo/image.png") must beSome(currentDir <::> dir("foo") </> file("image.png"))
   }
 
+  "parseRelFile - /foo/image.png" in {
+    parseRelFile("/foo/image.png") must beNone
+  }
+
+  "parseRelFile - foo/" in {
+    parseRelFile("foo/") must beNone
+  }
+
   "parseAbsFile - /image.png" in {
     parseAbsFile("/image.png") must beSome(rootDir </> file("image.png"))
   }
 
   "parseAbsFile - /foo/image.png" in {
     parseAbsFile("/foo/image.png") must beSome(rootDir </> dir("foo") </> file("image.png"))
+  }
+
+  "parseAbsFile - /foo/" in {
+    parseAbsFile("/foo/") must beNone
+  }
+
+  "parseAbsFile - foo/image.png" in {
+    parseAbsFile("foo/image.png") must beNone
   }
 
   "parseRelDir - empty string" in {
@@ -124,8 +140,24 @@ class PathSpecs extends Specification {
     parseRelDir("foo/bar/") must beSome(dir("foo") </> dir("bar"))
   }
 
+  "parseRelDir - /foo/" in {
+    parseRelDir("/foo/") must beNone
+  }
+
+  "parseRelDir - foo" in {
+    parseRelDir("foo") must beNone
+  }
+
   "parseRelDir - ./foo/bar/" in {
     parseRelDir("./foo/bar/") must beSome(dir("foo") </> dir("bar"))
+  }
+
+  "parseRelAsDir - ./foo/bar" in {
+    parseRelAsDir("./foo/bar") must beSome(dir("foo") </> dir("bar"))
+  }
+
+  "parseRelAsDir - ./foo/bar/" in {
+    parseRelAsDir("./foo/bar/") must beSome(dir("foo") </> dir("bar"))
   }
 
   "parseAbsDir - /" in {
@@ -138,6 +170,22 @@ class PathSpecs extends Specification {
 
   "parseAbsDir - /foo/bar/" in {
     parseAbsDir("/foo/bar/") must beSome(rootDir </> dir("foo") </> dir("bar"))
+  }
+
+  "parseAbsDir - /foo" in {
+    parseAbsDir("/foo") must beNone
+  }
+
+  "parseAbsDir - foo" in {
+    parseAbsDir("foo") must beNone
+  }
+
+  "parseAbsAsDir - /foo/bar/" in {
+    parseAbsAsDir("/foo/bar/") must beSome(rootDir </> dir("foo") </> dir("bar"))
+  }
+
+  "parseAbsAsDir - /foo/bar" in {
+    parseAbsAsDir("/foo/bar") must beSome(rootDir </> dir("foo") </> dir("bar"))
   }
 
   "placeholder codec" in {
