@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/slamdata/scala-pathy.svg?branch=master)](https://travis-ci.org/slamdata/scala-pathy)
+
 # pathy
 
 A type-safe abstraction for platform-independent file system paths.
