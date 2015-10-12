@@ -17,6 +17,7 @@
 package pathy
 
 import org.specs2.mutable._
+import scalaz.syntax.foldable._
 
 class PathSpecs extends Specification {
   import Path._
@@ -82,6 +83,13 @@ class PathSpecs extends Specification {
 
   "depth - negative" in {
     depth(parentDir1(parentDir1(parentDir1(currentDir)))) must_== -3
+  }
+
+  "flatten - returns NEL of result of folding each layer of path" in {
+    flatten(
+      "r", "c", "p", identity, identity,
+      currentDir </> dir("foo") </> dir("bar") </> file("flat.md")
+    ).toList must_== List("c", "foo", "bar", "flat.md")
   }
 
   "parseRelFile - image.png" in {

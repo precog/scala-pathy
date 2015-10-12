@@ -74,6 +74,10 @@ object Path {
   type RelDir[S] = Path[Rel, Dir, S]
   type AbsDir[S] = Path[Abs, Dir, S]
 
+  def currentDir[S]: Path[Rel, Dir, S] = Current
+
+  def rootDir[S]: Path[Abs, Dir, S] = Root
+
   def file[S](name: String): Path[Rel, File, S] = file1(FileName(name))
 
   def file1[S](name: FileName): Path[Rel, File, S] = FileIn(Current, name)
@@ -141,21 +145,19 @@ object Path {
       renameFile(file, name => name.changeExtension(_ => ext))
   }
 
-  def maybeDir[B,T,S](path: Path[B,T,S]): Option[Path[B, Dir, S]] = path match {
-    case Current      => Some(Current)
-    case Root         => Some(Root)
-    case ParentIn(p)  => Some(ParentIn(unsafeCoerceType(p)))
-    case FileIn(_, _) => None
-    case DirIn(p, d)  => Some(DirIn(unsafeCoerceType(p), d))
+  def refineType[B,T,S](path: Path[B,T,S]): Path[B,Dir,S] \/ Path[B,File,S] = path match {
+    case Current      => Current.left
+    case Root         => Root.left
+    case ParentIn(p)  => ParentIn(unsafeCoerceType(p)).left
+    case FileIn(p, f) => FileIn(unsafeCoerceType(p), f).right
+    case DirIn(p, d)  => DirIn(unsafeCoerceType(p), d).left
   }
 
-  def maybeFile[B,T,S](path: Path[B,T,S]): Option[Path[B, File, S]] = path match {
-    case Current      => None
-    case Root         => None
-    case ParentIn(p)  => None
-    case FileIn(p, f) => maybeDir(p) map (_ </> file1(f))
-    case DirIn(p, d)  => None
-  }
+  def maybeDir[B,T,S](path: Path[B,T,S]): Option[Path[B, Dir, S]] =
+    refineType(path).swap.toOption
+
+  def maybeFile[B,T,S](path: Path[B,T,S]): Option[Path[B, File, S]] =
+    refineType(path).toOption
 
   def peel[B,T,S](path: Path[B,T,S]): Option[(Path[B, Dir, S], DirName \/ FileName)] = path match {
     case Current         => None
@@ -177,6 +179,11 @@ object Path {
 
   def parentDir[B,T,S](path: Path[B,T,S]): Option[Path[B,Dir,S]] =
     peel(path).map(_._1)
+
+  def fileParent[B,S](file: Path[B, File, S]): Path[B, Dir, S] = file match {
+    case FileIn(p, _) => unsafeCoerceType(p)
+    case _            => sys.error("impossible!")
+  }
 
   def unsandbox[B,T,S](path: Path[B,T,S]): Path[B, T, Unsandboxed] = path match {
     case Current      => Current
@@ -200,10 +207,6 @@ object Path {
     case DirIn(p, d)  => DirIn(unsafeCoerceType(p), d)
     case FileIn(p, f) => FileIn(unsafeCoerceType(p), f)
   }
-
-  def currentDir[S]: Path[Rel, Dir, S] = Current
-
-  def rootDir[S]: Path[Abs, Dir, S] = Root
 
   def renameFile[B,S](path: Path[B, File, S], f: FileName => FileName): Path[B, File, S] =
     path match {
@@ -238,17 +241,27 @@ object Path {
         ch -> DirIn(p1, d)
     }
 
-  def flatten[X](root: => X, currentDir: => X, parentDir: => X, dirName: String => X, fileName: String => X, path: Path[_, _, _]): IList[X] = {
+  def flatten[X](root: => X, currentDir: => X, parentDir: => X, dirName: String => X, fileName: String => X, path: Path[_, _, _]): OneAnd[IList, X] = {
     @tailrec
-    def go(xs: IList[X], at: Path[_, _, _]): IList[X] = at match {
-      case Current                => currentDir :: xs
-      case Root                   => root :: xs
-      case ParentIn(p)            => go(parentDir :: xs, p)
-      case DirIn(p, DirName(d))   => go(dirName(d) :: xs, p)
-      case FileIn(p, FileName(f)) => go(fileName(f) :: xs, p)
+    def go(xs: OneAnd[IList, X], at: Path[_, _, _]): OneAnd[IList, X] = {
+      val tl = xs.head :: xs.tail
+
+      at match {
+        case Current      => OneAnd(currentDir, tl)
+        case Root         => OneAnd(root, tl)
+        case ParentIn(p)  => go(OneAnd(parentDir, tl), p)
+        case DirIn(p, d)  => go(OneAnd(dirName(d.value), tl), p)
+        case FileIn(p, f) => go(OneAnd(fileName(f.value), tl), p)
+      }
     }
 
-    go(IList.empty, path)
+    path match {
+      case Current      => OneAnd(currentDir, IList.empty)
+      case Root         => OneAnd(root, IList.empty)
+      case ParentIn(p)  => go(OneAnd(parentDir, IList.empty), p)
+      case DirIn(p, d)  => go(OneAnd(dirName(d.value), IList.empty), p)
+      case FileIn(p, f) => go(OneAnd(fileName(f.value), IList.empty), p)
+    }
   }
 
   def identicalPath[B,T,S,BB,TT,SS](p1: Path[B,T,S], p2: Path[BB,TT,SS]): Boolean =
@@ -262,8 +275,7 @@ object Path {
 
     def unsafePrintPath(path: Path[_, _, _]): String = {
       val s = flatten("", ".", "..", escape, escape, path)
-                .intersperse(separator.toString)
-                .fold
+                .intercalate(separator.toString)
 
       maybeDir(path) ? (s + separator) | s
     }
@@ -322,13 +334,13 @@ object Path {
       case FileIn(p, FileName(n)) => DirIn(unsafeCoerceType(p), DirName(n))
       case _ => sys.error("impossible!")
     }
-    
+
     val parseRelAsDir: String => Option[RelDir[Unsandboxed]] =
       parsePath[Option[RelDir[Unsandboxed]]](p => Some(asDir(p)), _ => None, Some(_), _ => None)
-    
+
     val parseAbsAsDir: String => Option[AbsDir[Unsandboxed]] =
       parsePath[Option[AbsDir[Unsandboxed]]](_ => None, p => Some(asDir(p)), _ => None, Some(_))
-    
+
   }
 
   object PathCodec {
