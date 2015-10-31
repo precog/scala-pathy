@@ -17,9 +17,11 @@
 package pathy
 
 import org.specs2.mutable._
+import org.specs2.ScalaCheck
 import scalaz.syntax.foldable._
+import arbitrary._
 
-class PathSpecs extends Specification {
+class PathSpecs extends Specification with ScalaCheck {
   import Path._
   import posixCodec._
 
@@ -41,6 +43,10 @@ class PathSpecs extends Specification {
 
   "printPath - ./../" in {
     unsafePrintPath(parentDir1(currentDir)) must_== "./../"
+  }
+
+  "print and parse again should produce same Path" ! prop { path: AbsFile[Sandboxed] =>
+    parseAbsFile(printPath(path)).get must_== path
   }
 
   "</> - ./../foo/" in {
