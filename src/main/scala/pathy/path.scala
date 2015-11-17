@@ -377,4 +377,6 @@ object Path {
       case DirIn(p, DirName(d))   => p.show + " </> dir(" + d.show + ")"
     }
   }
+
+  implicit def PathEqual[B,T,S]: Equal[Path[B,T,S]] = Equal.equalA
 }
