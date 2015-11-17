@@ -56,7 +56,6 @@ package object arbitrary {
       (100, Gen.nonEmptyListOf(genSegment)
         .map(_.foldLeft(currentDir[Sandboxed])((d, s) => d </> dir(s)))))
 
-  // TODO: Are these special characters MongoDB-specific?
   def genSegment: Gen[String] =
     Gen.nonEmptyListOf(Gen.frequency(
       (100, Arbitrary.arbitrary[Char]) ::
