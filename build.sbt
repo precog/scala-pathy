@@ -99,18 +99,61 @@ lazy val publishSettings = Seq(
   )
 )
 
-lazy val allSettings = buildSettings ++ baseSettings ++ publishSettings ++ pgpSettings
+val scalazVersion = "7.1.4"
+val specs2Version = "3.6.4"
+val scalacheckVersion = "1.12.5"
+
+lazy val allSettings =
+  buildSettings ++ baseSettings ++ publishSettings ++ pgpSettings
+
+lazy val noPublishSettings = Seq(
+  publish := (),
+  publishLocal := (),
+  publishArtifact := false
+)
 
 lazy val root = (project in file("."))
+  .aggregate(core, scalacheck, tests)
+  .settings(noPublishSettings)
+  .settings(Seq(
+    name := "pathy",
+    publishArtifact := false
+  ))
+
+lazy val core = (project in file("core"))
   .enablePlugins(AutomateHeaderPlugin)
   .settings(allSettings)
   .settings(Seq(
-    name := "pathy",
+    name := "pathy-core",
     initialCommands in console := "import pathy._, Path._",
     libraryDependencies ++= Seq(
-      "org.scalaz" %% "scalaz-core" % "7.1.0",
-      "org.specs2" %% "specs2-core" % "3.6.4" % "test",
-      "org.specs2" %% "specs2-scalacheck" % "3.6.4" % "test",
-      "org.scalacheck" %% "scalacheck" % "1.12.5" % "test"
+      "org.scalaz" %% "scalaz-core" % scalazVersion
+    )
+  ))
+
+lazy val scalacheck = (project in file("scalacheck"))
+  .dependsOn(core)
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(allSettings)
+  .settings(Seq(
+    name := "pathy-scalacheck",
+    libraryDependencies ++= Seq(
+      "org.scalaz" %% "scalaz-core" % scalazVersion,
+      "org.scalacheck" %% "scalacheck" % scalacheckVersion
+    )
+  ))
+
+lazy val tests = (project in file("tests"))
+  .dependsOn(core, scalacheck)
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(buildSettings ++ baseSettings)
+  .settings(noPublishSettings)
+  .settings(Seq(
+    name := "pathy-tests",
+    libraryDependencies ++= Seq(
+      "org.scalaz" %% "scalaz-core" % scalazVersion % "test",
+      "org.specs2" %% "specs2-core" % specs2Version % "test",
+      "org.specs2" %% "specs2-scalacheck" % specs2Version % "test",
+      "org.scalacheck" %% "scalacheck" % scalacheckVersion % "test"
     )
   ))

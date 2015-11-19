@@ -16,12 +16,14 @@
 
 package pathy
 
+import pathy.scalacheck._
+
 import org.specs2.mutable._
 import org.specs2.ScalaCheck
 import scalaz.syntax.foldable._
-import arbitrary._
 
 class PathSpecs extends Specification with ScalaCheck {
+  import PathyArbitrary._
   import Path._
   import posixCodec._
 
