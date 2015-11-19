@@ -15,16 +15,16 @@
  */
 
 package pathy
+package scalacheck
 
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
 
-import pathy.Path._
-
 import scalaz.syntax.functor._
 import scalaz.std.list._
 
-package object arbitrary {
+object PathyArbitrary {
+  import Path._
 
   implicit val arbitraryAbsFile: Arbitrary[AbsFile[Sandboxed]] =
     Arbitrary(Gen.resize(10, genAbsFile))
@@ -38,25 +38,27 @@ package object arbitrary {
   implicit val arbitraryRelDir: Arbitrary[RelDir[Sandboxed]] =
     Arbitrary(Gen.resize(10, genRelDir))
 
-  def genAbsFile: Gen[AbsFile[Sandboxed]] =
+  ////
+
+  private def genAbsFile: Gen[AbsFile[Sandboxed]] =
     genRelFile map (rootDir </> _)
 
-  def genRelFile: Gen[RelFile[Sandboxed]] =
+  private def genRelFile: Gen[RelFile[Sandboxed]] =
     for {
       d <- genRelDir
       s <- genSegment
     } yield d </> file(s)
 
-  def genAbsDir: Gen[AbsDir[Sandboxed]] =
+  private def genAbsDir: Gen[AbsDir[Sandboxed]] =
     genRelDir map (rootDir </> _)
 
-  def genRelDir: Gen[RelDir[Sandboxed]] =
+  private def genRelDir: Gen[RelDir[Sandboxed]] =
     Gen.frequency(
       (  1, Gen.const(currentDir[Sandboxed])),
       (100, Gen.nonEmptyListOf(genSegment)
         .map(_.foldLeft(currentDir[Sandboxed])((d, s) => d </> dir(s)))))
 
-  def genSegment: Gen[String] =
+  private def genSegment: Gen[String] =
     Gen.nonEmptyListOf(Gen.frequency(
       (100, Arbitrary.arbitrary[Char]) ::
         "./".toList.map(Gen.const).strengthL(10): _*))
