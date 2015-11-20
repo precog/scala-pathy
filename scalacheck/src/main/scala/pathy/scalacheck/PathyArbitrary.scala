@@ -23,16 +23,16 @@ object PathyArbitrary {
   import Path._
 
   implicit val arbitraryAbsFile: Arbitrary[AbsFile[Sandboxed]] =
-    arbPath[Abs,File,Sandboxed,RandomStr]
+    arbPath[Abs,File,Sandboxed,RandomSeg]
 
   implicit val arbitraryRelFile: Arbitrary[RelFile[Sandboxed]] =
-    arbPath[Rel,File,Sandboxed,RandomStr]
+    arbPath[Rel,File,Sandboxed,RandomSeg]
 
   implicit val arbitraryAbsDir: Arbitrary[AbsDir[Sandboxed]] =
-    arbPath[Abs,Dir,Sandboxed,RandomStr]
+    arbPath[Abs,Dir,Sandboxed,RandomSeg]
 
   implicit val arbitraryRelDir: Arbitrary[RelDir[Sandboxed]] =
-    arbPath[Rel,Dir,Sandboxed,RandomStr]
+    arbPath[Rel,Dir,Sandboxed,RandomSeg]
 
   ////
 

@@ -22,18 +22,18 @@ import org.scalacheck.Gen
 
 import scalaz.Show
 
-final case class RandomStr(str: String) extends AnyVal
+private[scalacheck] final case class RandomSeg(str: String) extends AnyVal
 
-object RandomStr {
-  implicit val randomStrArbitrary: Arbitrary[RandomStr] =
+private[scalacheck] object RandomSeg {
+  implicit val randomSegArbitrary: Arbitrary[RandomSeg] =
     Arbitrary {
       Gen.nonEmptyListOf(Gen.frequency(
         100 -> Arbitrary.arbitrary[Char],
          10 -> Gen.const('.'),
          10 -> Gen.const('/')
-      )) map (cs => RandomStr(cs.mkString))
+      )) map (cs => RandomSeg(cs.mkString))
     }
 
-  implicit val randomStrShow: Show[RandomStr] =
+  implicit val randomSegShow: Show[RandomSeg] =
     Show.shows(_.str)
 }
