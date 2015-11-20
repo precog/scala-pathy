@@ -19,8 +19,8 @@ package pathy
 import Path._
 
 package object scalacheck {
-  type GenAbsFile[A] = GenPath[Abs,File,Sandboxed,A]
-  type GenRelFile[A] = GenPath[Rel,File,Sandboxed,A]
-  type GenAbsDir[A]  = GenPath[Abs,Dir,Sandboxed,A]
-  type GenRelDir[A]  = GenPath[Rel,Dir,Sandboxed,A]
+  type AbsFileOf[A] = PathOf[Abs,File,Sandboxed,A]
+  type RelFileOf[A] = PathOf[Rel,File,Sandboxed,A]
+  type AbsDirOf[A]  = PathOf[Abs,Dir,Sandboxed,A]
+  type RelDirOf[A]  = PathOf[Rel,Dir,Sandboxed,A]
 }

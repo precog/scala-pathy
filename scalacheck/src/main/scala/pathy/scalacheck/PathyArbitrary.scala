@@ -36,6 +36,6 @@ object PathyArbitrary {
 
   ////
 
-  def arbPath[B,T,S,A](implicit GP: Arbitrary[GenPath[B,T,S,A]]): Arbitrary[Path[B,T,S]] =
+  def arbPath[B,T,S,A](implicit GP: Arbitrary[PathOf[B,T,S,A]]): Arbitrary[Path[B,T,S]] =
     Arbitrary(GP.arbitrary map (_.path))
 }

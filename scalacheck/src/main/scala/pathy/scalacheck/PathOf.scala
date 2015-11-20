@@ -29,24 +29,24 @@ import scalaz.syntax.show._
   * generate path segments.
   *
   * i.e. For some type `A` such that Arbitrary[A] and Show[A],
-  * Arbitrary[GenPath[B,T,S,A]] will generate an arbitrary Path[B,T,S] where
-  * every path segment is formed by Arbitrary[A].shows.
+  * Arbitrary[PathOf[B,T,S,A]] will generate an arbitrary Path[B,T,S] where
+  * every path segment is formed by the string representation of an arbitrary `A`.
   */
-final case class GenPath[B,T,S,A](path: Path[B,T,S]) extends AnyVal
+final case class PathOf[B,T,S,A](path: Path[B,T,S]) extends AnyVal
 
-object GenPath {
+object PathOf {
 
-  implicit def genAbsFileArbitrary[A: Arbitrary: Show]: Arbitrary[GenPath[Abs,File,Sandboxed,A]] =
-    Arbitrary(Gen.resize(10, genAbsFile[A] map (GenPath(_))))
+  implicit def absFileOfArbitrary[A: Arbitrary: Show]: Arbitrary[PathOf[Abs,File,Sandboxed,A]] =
+    Arbitrary(Gen.resize(10, genAbsFile[A] map (PathOf(_))))
 
-  implicit def genRelFileArbitrary[A: Arbitrary: Show]: Arbitrary[GenPath[Rel,File,Sandboxed,A]] =
-    Arbitrary(Gen.resize(10, genRelFile[A] map (GenPath(_))))
+  implicit def relFileOfArbitrary[A: Arbitrary: Show]: Arbitrary[PathOf[Rel,File,Sandboxed,A]] =
+    Arbitrary(Gen.resize(10, genRelFile[A] map (PathOf(_))))
 
-  implicit def genAbsDirArbitrary[A: Arbitrary: Show]: Arbitrary[GenPath[Abs,Dir,Sandboxed,A]] =
-    Arbitrary(Gen.resize(10, genAbsDir[A] map (GenPath(_))))
+  implicit def absDirOfArbitrary[A: Arbitrary: Show]: Arbitrary[PathOf[Abs,Dir,Sandboxed,A]] =
+    Arbitrary(Gen.resize(10, genAbsDir[A] map (PathOf(_))))
 
-  implicit def genRelDirArbitrary[A: Arbitrary: Show]: Arbitrary[GenPath[Rel,Dir,Sandboxed,A]] =
-    Arbitrary(Gen.resize(10, genRelDir[A] map (GenPath(_))))
+  implicit def relDirOfArbitrary[A: Arbitrary: Show]: Arbitrary[PathOf[Rel,Dir,Sandboxed,A]] =
+    Arbitrary(Gen.resize(10, genRelDir[A] map (PathOf(_))))
 
   ////
 
