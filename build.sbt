@@ -114,10 +114,10 @@ lazy val noPublishSettings = Seq(
 
 lazy val root = (project in file("."))
   .aggregate(core, scalacheck, tests)
+  .settings(allSettings)
   .settings(noPublishSettings)
   .settings(Seq(
-    name := "pathy",
-    publishArtifact := false
+    name := "pathy"
   ))
 
 lazy val core = (project in file("core"))
