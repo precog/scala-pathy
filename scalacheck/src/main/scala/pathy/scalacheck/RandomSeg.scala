@@ -18,24 +18,22 @@ package pathy
 package scalacheck
 
 import org.scalacheck.Arbitrary
+import org.scalacheck.Gen
 
-object PathyArbitrary {
-  import Path._
+import scalaz.Show
 
-  implicit val arbitraryAbsFile: Arbitrary[AbsFile[Sandboxed]] =
-    arbPath[Abs,File,Sandboxed,RandomSeg]
+private[scalacheck] final case class RandomSeg(str: String) extends AnyVal
 
-  implicit val arbitraryRelFile: Arbitrary[RelFile[Sandboxed]] =
-    arbPath[Rel,File,Sandboxed,RandomSeg]
+private[scalacheck] object RandomSeg {
+  implicit val randomSegArbitrary: Arbitrary[RandomSeg] =
+    Arbitrary {
+      Gen.nonEmptyListOf(Gen.frequency(
+        100 -> Arbitrary.arbitrary[Char],
+         10 -> Gen.const('.'),
+         10 -> Gen.const('/')
+      )) map (cs => RandomSeg(cs.mkString))
+    }
 
-  implicit val arbitraryAbsDir: Arbitrary[AbsDir[Sandboxed]] =
-    arbPath[Abs,Dir,Sandboxed,RandomSeg]
-
-  implicit val arbitraryRelDir: Arbitrary[RelDir[Sandboxed]] =
-    arbPath[Rel,Dir,Sandboxed,RandomSeg]
-
-  ////
-
-  def arbPath[B,T,S,A](implicit GP: Arbitrary[PathOf[B,T,S,A]]): Arbitrary[Path[B,T,S]] =
-    Arbitrary(GP.arbitrary map (_.path))
+  implicit val randomSegShow: Show[RandomSeg] =
+    Show.shows(_.str)
 }
