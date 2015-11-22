@@ -42,7 +42,7 @@ package object scalacheck {
   /** Generator for lists of non-atomic components, where the size parameter is
     * spread across all the generated elements so that the aggregate size of
     * component/leaf elements is effectively controlled by the size parameter.
-    * No element is ever generated with a size parameter of less than 1, and 
+    * No element is ever generated with a size parameter of less than 1, and
     * each "cons cell" consumes one unit of size.
     */
   def sizeDistributedListOfNonEmpty[A](g: Gen[A]): Gen[List[A]] =

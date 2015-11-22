@@ -20,7 +20,7 @@ package scalacheck
 import org.scalacheck.Arbitrary
 
 object PathyArbitrary {
-  import Path._
+  import Path._, PathNameOf._
 
   implicit val arbitraryAbsFile: Arbitrary[AbsFile[Sandboxed]] =
     arbPath[Abs,File,Sandboxed,RandomSeg]
@@ -33,6 +33,12 @@ object PathyArbitrary {
 
   implicit val arbitraryRelDir: Arbitrary[RelDir[Sandboxed]] =
     arbPath[Rel,Dir,Sandboxed,RandomSeg]
+
+  implicit val arbitraryFileName: Arbitrary[FileName] =
+    Arbitrary(genFileName[RandomSeg])
+
+  implicit val arbitraryDirName: Arbitrary[DirName] =
+    Arbitrary(genDirName[RandomSeg])
 
   ////
 

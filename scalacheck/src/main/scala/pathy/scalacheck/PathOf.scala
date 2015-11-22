@@ -18,12 +18,12 @@ package pathy
 package scalacheck
 
 import Path._
+import PathNameOf._
 
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
 
 import scalaz.Show
-import scalaz.syntax.show._
 
 /** Represents a `Path[B,T,S]` indexed by another type `A` which is used to
   * generate path segments.
@@ -54,15 +54,12 @@ object PathOf {
     genRelFile[A] map (rootDir </> _)
 
   private def genRelFile[A: Arbitrary: Show]: Gen[RelFile[Sandboxed]] =
-    sizeDistributed(genRelDir[A], genSegment[A])((d, s) => d </> file(s))
+    sizeDistributed(genRelDir[A], genFileName[A])((d, s) => d </> file1(s))
 
   private def genAbsDir[A: Arbitrary: Show]: Gen[AbsDir[Sandboxed]] =
     genRelDir[A] map (rootDir </> _)
 
   private def genRelDir[A: Arbitrary: Show]: Gen[RelDir[Sandboxed]] =
-    sizeDistributedListOfNonEmpty(genSegment[A])
-      .map(_.foldLeft(currentDir[Sandboxed])((d, s) => d </> dir(s)))
-
-  private def genSegment[A: Arbitrary: Show]: Gen[String] =
-    Arbitrary.arbitrary[A] map (_.shows)
+    sizeDistributedListOfNonEmpty(genDirName[A])
+      .map(_.foldLeft(currentDir[Sandboxed])((d, s) => d </> dir1(s)))
 }
