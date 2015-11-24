@@ -87,15 +87,13 @@ lazy val publishSettings = Seq(
       "scm:git@github.com:slamdata/scala-pathy.git"
     )
   ),
-  pomExtra := (
-    <developers>
-      <developer>
-        <id>slamdata</id>
-        <name>SlamData Inc.</name>
-        <url>http://slamdata.com</url>
-        <email>contact@slamdata.com</email>
-      </developer>
-    </developers>
+  developers := List(
+    Developer(
+      id = "slamdata",
+      name = "SlamData Inc.",
+      email = "contact@slamdata.com",
+      url = new URL("http://slamdata.com")
+    )
   )
 )
 
