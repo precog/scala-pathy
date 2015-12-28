@@ -37,16 +37,16 @@ final case class PathOf[B,T,S,A](path: Path[B,T,S]) extends AnyVal
 object PathOf {
 
   implicit def absFileOfArbitrary[A: Arbitrary: Show]: Arbitrary[PathOf[Abs,File,Sandboxed,A]] =
-    Arbitrary(Gen.resize(10, genAbsFile[A] map (PathOf(_))))
+    Arbitrary(genAbsFile[A] map (PathOf(_)))
 
   implicit def relFileOfArbitrary[A: Arbitrary: Show]: Arbitrary[PathOf[Rel,File,Sandboxed,A]] =
-    Arbitrary(Gen.resize(10, genRelFile[A] map (PathOf(_))))
+    Arbitrary(genRelFile[A] map (PathOf(_)))
 
   implicit def absDirOfArbitrary[A: Arbitrary: Show]: Arbitrary[PathOf[Abs,Dir,Sandboxed,A]] =
-    Arbitrary(Gen.resize(10, genAbsDir[A] map (PathOf(_))))
+    Arbitrary(genAbsDir[A] map (PathOf(_)))
 
   implicit def relDirOfArbitrary[A: Arbitrary: Show]: Arbitrary[PathOf[Rel,Dir,Sandboxed,A]] =
-    Arbitrary(Gen.resize(10, genRelDir[A] map (PathOf(_))))
+    Arbitrary(genRelDir[A] map (PathOf(_)))
 
   ////
 
@@ -54,19 +54,14 @@ object PathOf {
     genRelFile[A] map (rootDir </> _)
 
   private def genRelFile[A: Arbitrary: Show]: Gen[RelFile[Sandboxed]] =
-    for {
-      d <- genRelDir[A]
-      s <- genSegment[A]
-    } yield d </> file(s)
+    sizeDistributed(genRelDir[A], genSegment[A])((d, s) => d </> file(s))
 
   private def genAbsDir[A: Arbitrary: Show]: Gen[AbsDir[Sandboxed]] =
     genRelDir[A] map (rootDir </> _)
 
   private def genRelDir[A: Arbitrary: Show]: Gen[RelDir[Sandboxed]] =
-    Gen.frequency(
-      (  1, Gen.const(currentDir[Sandboxed])),
-      (100, Gen.nonEmptyListOf(genSegment[A])
-        .map(_.foldLeft(currentDir[Sandboxed])((d, s) => d </> dir(s)))))
+    sizeDistributedListOfNonEmpty(genSegment[A])
+      .map(_.foldLeft(currentDir[Sandboxed])((d, s) => d </> dir(s)))
 
   private def genSegment[A: Arbitrary: Show]: Gen[String] =
     Arbitrary.arbitrary[A] map (_.shows)

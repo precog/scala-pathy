@@ -18,9 +18,43 @@ package pathy
 
 import Path._
 
+import org.scalacheck.Gen
+
 package object scalacheck {
   type AbsFileOf[A] = PathOf[Abs,File,Sandboxed,A]
   type RelFileOf[A] = PathOf[Rel,File,Sandboxed,A]
   type AbsDirOf[A]  = PathOf[Abs,Dir,Sandboxed,A]
   type RelDirOf[A]  = PathOf[Rel,Dir,Sandboxed,A]
+
+  /** Generator that distributes the available size to two component generators,
+    * and then combines the results. Can be used to generate nested structures
+    * where the aggregate size of component/leaf elements is effectively controlled
+    * by the size parameter.
+    */
+  def sizeDistributed[A, B, C](ga: Gen[A], gb: Gen[B])(f: (A, B) => C): Gen[C] =
+    for {
+      n <- Gen.size
+      x <- Gen.choose(0, n)
+      a <- Gen.resize(x, ga)
+      b <- Gen.resize(n - x, gb)
+    } yield f(a, b)
+
+  /** Generator for lists of non-atomic components, where the size parameter is
+    * spread across all the generated elements so that the aggregate size of
+    * component/leaf elements is effectively controlled by the size parameter.
+    * No element is ever generated with a size parameter of less than 1, and 
+    * each "cons cell" consumes one unit of size.
+    */
+  def sizeDistributedListOfNonEmpty[A](g: Gen[A]): Gen[List[A]] =
+    Gen.size.flatMap { n =>
+      if (n < 1) Gen.const(Nil)
+      else if (n < 3) g.map(_ :: Nil)
+      else
+        for {
+          l <- Gen.choose(1, n)
+          r = n - l - 1
+          h <- Gen.resize(l, g)
+          t <- Gen.resize(r, sizeDistributedListOfNonEmpty(g))
+        } yield (h :: t)
+    }
 }

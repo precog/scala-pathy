@@ -28,9 +28,10 @@ private[scalacheck] object RandomSeg {
   implicit val randomSegArbitrary: Arbitrary[RandomSeg] =
     Arbitrary {
       Gen.nonEmptyListOf(Gen.frequency(
-        100 -> Arbitrary.arbitrary[Char],
+        100 -> Gen.alphaNumChar,
          10 -> Gen.const('.'),
-         10 -> Gen.const('/')
+         10 -> Gen.const('/'),
+          5 -> Arbitrary.arbitrary[Char]
       )) map (cs => RandomSeg(cs.mkString))
     }
 
