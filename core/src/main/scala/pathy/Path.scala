@@ -297,13 +297,12 @@ object Path {
 
       def folder[B,T,S](base: Path[B,T,S], t: (String, Int)): Path[B,T,S] = t match {
         case ("", _)    => base
+        case (seg, idx) if isFile && idx == last =>
+          FileIn(base, FileName(unescape(seg)))
         case (".", _)   => base
         case ("..", _)  => ParentIn(base)
         case (seg, idx) =>
-          if (isFile && idx == last)
-            FileIn(base, FileName(unescape(seg)))
-          else
-            DirIn(base, DirName(unescape(seg)))
+          DirIn(base, DirName(unescape(seg)))
       }
 
       if (str == "")
