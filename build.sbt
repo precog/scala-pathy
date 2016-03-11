@@ -4,8 +4,8 @@ import de.heikoseeberger.sbtheader.license.Apache2_0
 
 lazy val buildSettings = Seq(
   organization := "com.slamdata",
-  scalaVersion := "2.11.7",
-  crossScalaVersions := Seq("2.10.5", "2.11.7")
+  scalaVersion := "2.11.8",
+  crossScalaVersions := Seq("2.10.6", "2.11.8")
 )
 
 lazy val compilerOptions = Seq(
