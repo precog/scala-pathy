@@ -124,6 +124,14 @@ class PathSpecs extends Specification with ScalaCheck {
     parseRelFile("foo/") must beNone
   }
 
+  "parseRelFile - ." in {
+    parseRelFile(".") must beSome(file("."))
+  }
+
+  "parseRelFile - foo/.." in {
+    parseRelFile("foo/..") must beSome(dir("foo") </> file(".."))
+  }
+
   "parseAbsFile - /image.png" in {
     parseAbsFile("/image.png") must beSome(rootDir </> file("image.png"))
   }
@@ -138,6 +146,14 @@ class PathSpecs extends Specification with ScalaCheck {
 
   "parseAbsFile - foo/image.png" in {
     parseAbsFile("foo/image.png") must beNone
+  }
+
+  "parseAbsFile - /." in {
+    parseAbsFile("/.") must beSome(rootDir </> file("."))
+  }
+
+  "parseRelFile - /foo/.." in {
+    parseAbsFile("/foo/..") must beSome(rootDir </> dir("foo") </> file(".."))
   }
 
   "parseRelDir - empty string" in {
