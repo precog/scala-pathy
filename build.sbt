@@ -141,8 +141,20 @@ lazy val scalacheck = (project in file("scalacheck"))
     )
   ))
 
+lazy val specs2 = (project in file("specs2"))
+  .dependsOn(scalacheck)
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(allSettings)
+  .settings(Seq(
+    name := "pathy-specs2",
+    libraryDependencies ++= Seq(
+      "org.specs2" %% "specs2-core" % specs2Version,
+      "org.specs2" %% "specs2-scalacheck" % specs2Version
+    )
+  ))
+
 lazy val tests = (project in file("tests"))
-  .dependsOn(core, scalacheck)
+  .dependsOn(core, scalacheck, specs2)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(buildSettings ++ baseSettings)
   .settings(noPublishSettings)

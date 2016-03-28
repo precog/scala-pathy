@@ -290,32 +290,26 @@ object Path {
       ad: AbsDir[Unsandboxed] => Z)(str: String): Z =
     {
       val segs = str.split(separator)
-      val last = segs.length - 1
       val isAbs = str.startsWith(separator.toString)
-      val isFile = !str.endsWith(separator.toString)
-      val tuples = segs.zipWithIndex
+      val isDir = List(separator.toString, s"$separator.", s"$separator..").exists(str.endsWith) || str === "." || str === ".."
 
-      def folder[B,T,S](base: Path[B,T,S], t: (String, Int)): Path[B,T,S] = t match {
-        case ("", _)    => base
-        case (".", _)   => base
-        case ("..", _)  => ParentIn(base)
-        case (seg, idx) =>
-          if (isFile && idx == last)
-            FileIn(base, FileName(unescape(seg)))
-          else
-            DirIn(base, DirName(unescape(seg)))
+      def folder[B,S](base: Path[B,Dir,S], segments: String): Path[B,Dir,S] = segments match {
+        case ""    => base
+        case "."   => base
+        case ".."  => ParentIn(base)
+        case seg   => base </> dir(unescape(seg))
       }
 
       if (str == "")
         rd(Current)
-      else if (isAbs && isFile)
-        af(tuples.foldLeft[AbsFile[Unsandboxed]](Root)(folder))
-      else if (isAbs && !isFile)
-        ad(tuples.foldLeft[AbsDir[Unsandboxed]](Root)(folder))
-      else if (!isAbs && isFile)
-        rf(tuples.foldLeft[RelFile[Unsandboxed]](Current)(folder))
+      else if (isAbs && !isDir)
+        af(segs.init.foldLeft[AbsDir[Unsandboxed]](rootDir[Unsandboxed])(folder) </> file[Unsandboxed](unescape(segs.last)))
+      else if (isAbs && isDir)
+        ad(segs.foldLeft[AbsDir[Unsandboxed]](rootDir[Unsandboxed])(folder))
+      else if (!isAbs && !isDir)
+        rf(segs.init.foldLeft[RelDir[Unsandboxed]](Current)(folder) </> file[Unsandboxed](unescape(segs.last)))
       else
-        rd(tuples.foldLeft[RelDir[Unsandboxed]](Current)(folder))
+        rd(segs.foldLeft[RelDir[Unsandboxed]](Current)(folder))
     }
 
     val parseRelFile: String => Option[RelFile[Unsandboxed]] =
