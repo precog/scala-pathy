@@ -97,8 +97,8 @@ lazy val publishSettings = Seq(
   )
 )
 
-val scalazVersion = "7.1.4"
-val specs2Version = "3.6.4"
+val scalazVersion = "7.2.1"
+val specs2Version = "3.7.3-scalacheck-1.12"
 val scalacheckVersion = "1.12.5"
 
 lazy val allSettings =
