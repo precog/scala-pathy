@@ -1,0 +1,1 @@
+Upgrade version of scalaz to `7.2.1`
