@@ -1,5 +1,5 @@
 name: scala-pathy documentation
-markdown: redcarpet
-highlighter: pygments
+markdown: kramdown
+highlighter: rouge
 baseurl: /scala-pathy/
 apidocs: /scala-pathy/api/
