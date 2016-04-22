@@ -1,6 +1,9 @@
 import sbt._
 import Keys._
+import com.typesafe.sbt.SbtSite.SiteKeys._
+import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
 import de.heikoseeberger.sbtheader.license.Apache2_0
+import sbtunidoc.Plugin.UnidocKeys._
 
 lazy val buildSettings = Seq(
   organization := "com.slamdata",
@@ -111,7 +114,7 @@ lazy val noPublishSettings = Seq(
 )
 
 lazy val root = (project in file("."))
-  .aggregate(core, scalacheck, tests)
+  .aggregate(core, scalacheck, tests, docs)
   .settings(allSettings)
   .settings(noPublishSettings)
   .settings(Seq(
@@ -155,3 +158,8 @@ lazy val tests = (project in file("tests"))
       "org.scalacheck" %% "scalacheck" % scalacheckVersion % "test"
     )
   ))
+
+lazy val docs = (project in file("docs"))
+  .settings(buildSettings)
+  .settings(unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(core, scalacheck))
+  .dependsOn(core, scalacheck)
