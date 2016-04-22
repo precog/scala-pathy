@@ -1,3 +1,11 @@
+---
+layout: source
+title:  "Examples"
+section: "examples"
+scaladoc: "http://slamdata.github.io/scala-pathy/api/#examples.ExamplesExamples"
+source: "http://slamdata.github.io/scala-pathy/blob/master/example/src/main/scala/Examples.scala"
+pageSource: "https://raw.githubusercontent.com/slamdata/scala-pathy/master/docs/src/main/tut/examples.md"
+---
 # Pathy Examples
 
 ## Constructing paths

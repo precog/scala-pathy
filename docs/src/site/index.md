@@ -1,3 +1,8 @@
+---
+layout: default
+title: "Pathy"
+section: "home"
+---
 # Pathy
 
 A type-safe abstraction for platform-independent file system paths.
