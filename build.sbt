@@ -82,7 +82,7 @@ lazy val noPublishSettings = Seq(
 )
 
 lazy val root = (project in file("."))
-  .aggregate(core, scalacheck, tests)
+  .aggregate(core, argonaut, scalacheck, tests)
   .settings(allSettings)
   .settings(noPublishSettings)
   .settings(Seq(
@@ -97,6 +97,19 @@ lazy val core = (project in file("core"))
     initialCommands in console := "import pathy._, Path._",
     libraryDependencies ++= Seq(
       "org.scalaz" %% "scalaz-core" % scalazVersion
+    )
+  ))
+
+lazy val argonaut = (project in file("argonaut"))
+  .dependsOn(core, scalacheck)
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(allSettings)
+  .settings(Seq(
+    name := "pathy-argonaut",
+    libraryDependencies ++= Seq(
+      "io.argonaut" %% "argonaut" % "6.2-M1",
+      "org.specs2" %% "specs2-core" % specs2Version % "test",
+      "org.specs2" %% "specs2-scalacheck" % specs2Version % "test"
     )
   ))
 
