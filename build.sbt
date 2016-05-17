@@ -140,7 +140,7 @@ lazy val specs2 = (project in file("specs2"))
 lazy val tests = (project in file("tests"))
   .dependsOn(core, scalacheck, specs2)
   .enablePlugins(AutomateHeaderPlugin)
-  .settings(buildSettings ++ baseSettings)
+  .settings(allSettings)
   .settings(noPublishSettings)
   .settings(Seq(
     name := "pathy-tests",
