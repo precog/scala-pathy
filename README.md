@@ -11,7 +11,8 @@ Ported from [purescript-pathy](slamengine/purescript-pathy).
 ```scala
 val fullPath = rootDir </> dir("baz") </> file("foo.png")
 ```
-See the [examples file](/src/test/scala/examples.scala) for more.
+
+See the [examples file](/tests/src/test/scala/examples.scala) for more.
 
 ## Getting Started
 
