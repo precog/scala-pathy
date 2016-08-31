@@ -16,27 +16,31 @@
 
 package pathy
 
-import pathy.scalacheck._
-
-import org.specs2.mutable._
+import org.specs2.mutable.SpecLike
+import org.specs2.specification.core.Fragment
 import org.specs2.ScalaCheck
+import pathy.scalacheck._
+import Path._
+import PathyArbitrary._
 
-object ValidateCodec extends SpecificationLike with ScalaCheck {
-  import Path._
-  import PathyArbitrary._
+trait ValidateCodec extends SpecLike with ScalaCheck {
 
-  def validateIsLossless(codec: PathCodec) = {
+  /** It's protected to emphasize it doesn't make any sense to be
+   *  calling this method except from the instance which inherits it.
+   *  Mutable specifications work by mutating an instance variable.
+   */
+  protected def validateIsLossless(codec: PathCodec): Fragment = {
     "print and parse again should produce same Path" >> {
-      "absolute file" ! prop { path: AbsFile[Sandboxed] =>
+      "absolute file" >> prop { path: AbsFile[Sandboxed] =>
         codec.parseAbsFile(codec.printPath(path)) must_== Some(path)
       }
-      "relative file" ! prop{ path: RelFile[Sandboxed] =>
+      "relative file" >> prop{ path: RelFile[Sandboxed] =>
         codec.parseRelFile(codec.printPath(path)) must_== Some(path)
       }
-      "absolute dir" ! prop { path: AbsDir[Sandboxed] =>
+      "absolute dir" >> prop { path: AbsDir[Sandboxed] =>
         codec.parseAbsDir(codec.printPath(path)) must_== Some(path)
       }
-      "relative dir" ! prop { path: RelDir[Sandboxed] =>
+      "relative dir" >> prop { path: RelDir[Sandboxed] =>
         codec.parseRelDir(codec.printPath(path)) must_== Some(path)
       }
     }

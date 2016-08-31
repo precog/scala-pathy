@@ -16,15 +16,13 @@
 
 package pathy
 
-import org.specs2.mutable.Specification
+import org.specs2.mutable.Spec
 import pathy.Path._
 
-class PlaceholderSpecs extends Specification {
-
+class PlaceholderSpecs extends Spec with ValidateCodec {
   import posixCodec._
-  import ValidateCodec.validateIsLossless
 
-  "placeholder codec" in {
+  "placeholder codec" >> {
     "printPath" >> {
       "replaces separator in segments with placeholder" in {
         unsafePrintPath(dir("foo/bar") </> dir("baz") </> file("qu/ux.txt")) must_== "./foo$sep$bar/baz/qu$sep$ux.txt"
@@ -41,20 +39,20 @@ class PlaceholderSpecs extends Specification {
 
     "parsePath" >> {
       "reads separator ph in segments" in {
-        parseRelDir("foo/$sep$/bar/") must beSome(dir("foo") </> dir("/") </> dir("bar"))
+        parseRelDir("foo/$sep$/bar/") must_=== Some(dir("foo") </> dir("/") </> dir("bar"))
       }
 
       "reads single dot ph in segments" in {
-        parseRelFile("foo/$dot$/bar") must beSome(dir("foo") </> dir(".") </> file("bar"))
+        parseRelFile("foo/$dot$/bar") must_=== Some(dir("foo") </> dir(".") </> file("bar"))
       }
 
       "reads double dot separator in segments" in {
-        parseRelFile("foo/bar/$dotdot$") must beSome(dir("foo") </> dir("bar") </> file(".."))
+        parseRelFile("foo/bar/$dotdot$") must_=== Some(dir("foo") </> dir("bar") </> file(".."))
       }
     }
 
-    "posixCodec is lossless" in validateIsLossless(posixCodec)
+    "posixCodec is lossless" >> validateIsLossless(posixCodec)
 
-    "windowsCodec is lossless" in validateIsLossless(windowsCodec)
+    "windowsCodec is lossless" >> validateIsLossless(windowsCodec)
   }
 }
