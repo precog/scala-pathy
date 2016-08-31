@@ -38,16 +38,17 @@ class PlaceholderSpecs extends Spec with ValidateCodec {
     }
 
     "parsePath" >> {
+      /* Weirdly, in these examples must_=== compiles under scala 2.11 but not 2.10. */
       "reads separator ph in segments" in {
-        parseRelDir("foo/$sep$/bar/") must_=== Some(dir("foo") </> dir("/") </> dir("bar"))
+        parseRelDir("foo/$sep$/bar/") must_== Some(dir("foo") </> dir("/") </> dir("bar"))
       }
 
       "reads single dot ph in segments" in {
-        parseRelFile("foo/$dot$/bar") must_=== Some(dir("foo") </> dir(".") </> file("bar"))
+        parseRelFile("foo/$dot$/bar") must_== Some(dir("foo") </> dir(".") </> file("bar"))
       }
 
       "reads double dot separator in segments" in {
-        parseRelFile("foo/bar/$dotdot$") must_=== Some(dir("foo") </> dir("bar") </> file(".."))
+        parseRelFile("foo/bar/$dotdot$") must_== Some(dir("foo") </> dir("bar") </> file(".."))
       }
     }
 
