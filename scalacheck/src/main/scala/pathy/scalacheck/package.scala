@@ -57,4 +57,7 @@ package object scalacheck {
           t <- Gen.resize(r, sizeDistributedListOfNonEmpty(g))
         } yield (h :: t)
     }
+    
+  val MinPrintableASCII = '\u0020'
+  val MaxPrintableASCII = '\u007e'
 }

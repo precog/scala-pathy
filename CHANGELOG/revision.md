@@ -1,0 +1,1 @@
+- improve coverage of ASCII characters in Path generators
