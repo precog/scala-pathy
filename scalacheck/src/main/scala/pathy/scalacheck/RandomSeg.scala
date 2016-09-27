@@ -22,19 +22,24 @@ import org.scalacheck.Gen
 
 import scalaz.Show
 
+/** Newtype for path segment strings with a generator that produces mostly 
+  * alphanumeric, then any printable ASCII char, with slightly more `.` and `/` 
+  * characters (because they tend to be problematic for encoders), and finally 
+  * an occasional char from anywhere in Unicode. */
 private[scalacheck] final case class RandomSeg(str: String) extends AnyVal
 
 private[scalacheck] object RandomSeg {
-  implicit val randomSegArbitrary: Arbitrary[RandomSeg] =
+  implicit val arbitrary: Arbitrary[RandomSeg] =
     Arbitrary {
       Gen.nonEmptyListOf(Gen.frequency(
-        100 -> Gen.alphaNumChar,
-         10 -> Gen.const('.'),
-         10 -> Gen.const('/'),
-          5 -> Arbitrary.arbitrary[Char]
+        50 -> Gen.alphaChar,
+        25 -> Gen.choose(MinPrintableASCII, MaxPrintableASCII),
+        10 -> Gen.const('.'),
+        10 -> Gen.const('/'),
+         5 -> Arbitrary.arbitrary[Char]
       )) map (cs => RandomSeg(cs.mkString))
     }
 
-  implicit val randomSegShow: Show[RandomSeg] =
+  implicit val show: Show[RandomSeg] =
     Show.shows(_.str)
 }
