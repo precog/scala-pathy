@@ -2,11 +2,7 @@ import sbt._
 import Keys._
 import de.heikoseeberger.sbtheader.license.Apache2_0
 
-lazy val buildSettings = Seq(
-  organization := "com.slamdata",
-  scalaVersion := "2.11.8",
-  crossScalaVersions := Seq("2.10.6", "2.11.8")
-)
+lazy val buildSettings = Seq(organization := "com.slamdata")
 
 lazy val compilerOptions = Seq(
   "-deprecation",
@@ -68,9 +64,9 @@ lazy val publishSettings = Seq(
   )
 )
 
-val scalazVersion = "7.2.1"
-val specs2Version = "3.7.3-scalacheck-1.12"
-val scalacheckVersion = "1.12.5"
+val scalazVersion = "7.2.8"
+val specs2Version = "3.8.7"
+val scalacheckVersion = "1.13.4"
 
 lazy val allSettings =
   buildSettings ++ baseSettings ++ publishSettings
@@ -107,9 +103,9 @@ lazy val argonaut = (project in file("argonaut"))
   .settings(Seq(
     name := "pathy-argonaut",
     libraryDependencies ++= Seq(
-      "io.argonaut" %% "argonaut" % "6.2-M1",
-      "org.specs2" %% "specs2-core" % specs2Version % "test",
-      "org.specs2" %% "specs2-scalacheck" % specs2Version % "test"
+      "io.argonaut" %% "argonaut"          % "6.2-RC2",
+      "org.specs2"  %% "specs2-core"       % specs2Version % "test",
+      "org.specs2"  %% "specs2-scalacheck" % specs2Version % "test"
     )
   ))
 
