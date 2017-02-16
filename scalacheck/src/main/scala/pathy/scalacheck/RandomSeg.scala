@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 - 2015 SlamData Inc.
+ * Copyright 2014–2017 SlamData Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,16 @@
 package pathy
 package scalacheck
 
+import slamdata.Predef._
+
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
 
 import scalaz.Show
 
-/** Newtype for path segment strings with a generator that produces mostly 
-  * alphanumeric, then any printable ASCII char, with slightly more `.` and `/` 
-  * characters (because they tend to be problematic for encoders), and finally 
+/** Newtype for path segment strings with a generator that produces mostly
+  * alphanumeric, then any printable ASCII char, with slightly more `.` and `/`
+  * characters (because they tend to be problematic for encoders), and finally
   * an occasional char from anywhere in Unicode. */
 private[scalacheck] final case class RandomSeg(str: String) extends AnyVal
 

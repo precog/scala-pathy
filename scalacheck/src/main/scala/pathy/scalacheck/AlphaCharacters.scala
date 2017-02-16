@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 - 2015 SlamData Inc.
+ * Copyright 2014–2017 SlamData Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 
 package pathy.scalacheck
 
+import slamdata.Predef._
+
 import org.scalacheck.{Gen, Arbitrary}
 import scalaz.Show
 
-case class AlphaCharacters(value: String) extends scala.AnyVal
+final case class AlphaCharacters(value: String) extends scala.AnyVal
 
 object AlphaCharacters {
   implicit val arb: Arbitrary[AlphaCharacters] =
