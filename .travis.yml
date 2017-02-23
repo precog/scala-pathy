@@ -12,8 +12,8 @@ matrix:
     jdk: oraclejdk7
 sudo: false
 script:
-  - sbt test
+  - sbt test transferPublishAndTagResources
   - scripts/publishAndTag 'slamdata/scala-pathy'
-env:
-  global:
-    - secure: nxTDurFKCJUnm5caGc7WGN1xJbStxtZECafvll0TClXVmgs907kRwOhL1EX3AwU2cigHI0TV1p3/ZqcSUJGQeqYHNRwxW3+N6yyg7disuDfeaPZ8/Q04SlHbG7/hp5AbZJW7hGpCHgv8cMGl9AJVTEaS+ipV5zr6Ts+JpjtOGhw=
+branches:
+  except:
+  - "/^v\\d+\\.\\d+\\.\\d+$/"
