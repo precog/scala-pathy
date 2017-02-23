@@ -366,7 +366,7 @@ object Path {
     private val $dotdot$ = "$dotdot$"
   }
 
-  implicit def PathShow[B,T,S]: Show[Path[B,T,S]] = new Show[Path[B,T,S]] {
+  implicit def pathShow[B,T,S]: Show[Path[B,T,S]] = new Show[Path[B,T,S]] {
     override def show(v: Path[B,T,S]): Cord = v match {
       case Current                => "currentDir"
       case Root                   => "rootDir"
@@ -376,5 +376,13 @@ object Path {
     }
   }
 
-  implicit def PathEqual[B,T,S]: Equal[Path[B,T,S]] = Equal.equalA
+  implicit def pathOrder[B,T,S]: Order[Path[B,T,S]] =
+    Order.orderBy(p =>
+      flatten[(Option[Int], Option[String \/ String])](
+        root       =      (some(0),          none),
+        parentDir  =      (some(1),          none),
+        currentDir =      (some(2),          none),
+        dirName    = s => (none   , some( s.left)),
+        fileName   = s => (none   , some(s.right)),
+        path       = p))
 }
