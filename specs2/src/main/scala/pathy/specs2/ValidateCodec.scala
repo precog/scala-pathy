@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 - 2015 SlamData Inc.
+ * Copyright 2014–2017 SlamData Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,24 @@
 
 package pathy
 
+import slamdata.Predef._
 import pathy.scalacheck._
 
 import org.specs2.mutable._
 import org.specs2.ScalaCheck
+import org.specs2.specification.core.Fragment
 
 object ValidateCodec extends SpecificationLike with ScalaCheck {
   import Path._
   import PathyArbitrary._
 
-  def validateIsLossless(codec: PathCodec) = {
+  @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
+  def validateIsLossless(codec: PathCodec): Fragment = {
     "print and parse again should produce same Path" >> {
       "absolute file" ! prop { path: AbsFile[Sandboxed] =>
         codec.parseAbsFile(codec.printPath(path)) must_== Some(path)
       }
-      "relative file" ! prop{ path: RelFile[Sandboxed] =>
+      "relative file" ! prop { path: RelFile[Sandboxed] =>
         codec.parseRelFile(codec.printPath(path)) must_== Some(path)
       }
       "absolute dir" ! prop { path: AbsDir[Sandboxed] =>

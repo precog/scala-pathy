@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 - 2015 SlamData Inc.
+ * Copyright 2014–2017 SlamData Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package pathy
 
+import slamdata.Predef._
 import Path._
 
 import org.scalacheck.Gen
@@ -57,7 +58,7 @@ package object scalacheck {
           t <- Gen.resize(r, sizeDistributedListOfNonEmpty(g))
         } yield (h :: t)
     }
-    
-  val MinPrintableASCII = '\u0020'
-  val MaxPrintableASCII = '\u007e'
+
+  val MinPrintableASCII: Char = '\u0020'
+  val MaxPrintableASCII: Char = '\u007e'
 }

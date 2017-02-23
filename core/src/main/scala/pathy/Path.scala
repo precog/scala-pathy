@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 - 2015 SlamData Inc.
+ * Copyright 2014–2017 SlamData Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,16 @@
 
 package pathy
 
+import slamdata.Predef._
+
 import scala.annotation.tailrec
+import scala.sys
+
 import scalaz._, Scalaz._
 
 sealed trait Path[+B,+T,+S] {
   def isAbsolute: Boolean
-  def isRelative = !isAbsolute
+  def isRelative: Boolean = !isAbsolute
 }
 
 object Path {
@@ -37,12 +41,12 @@ object Path {
   final case class FileName(value: String) extends AnyVal {
     def extension: String = {
       val idx = value.lastIndexOf(".")
-      if (idx == -1) "" else value.substring(idx + 1)
+      if (idx ≟ -1) "" else value.substring(idx + 1)
     }
 
     def dropExtension: FileName = {
       val idx = value.lastIndexOf(".")
-      if (idx == -1) this else FileName(value.substring(0, idx))
+      if (idx ≟ -1) this else FileName(value.substring(0, idx))
     }
 
     def changeExtension(f: String => String): FileName =
@@ -107,7 +111,7 @@ object Path {
             case _                  => None
           }
           case Some((p1p, v)) =>
-            go(p1p, p2).map(p => p </> v.fold(DirIn(Current, _), FileIn(Current, _)))
+            go(p1p, p2).map(p => p </> v.fold[Path[Rel,TT,SS]](DirIn(Current, _), FileIn(Current, _)))
           }
       go(canonicalize(path), canonicalize(dir))
     }
@@ -265,11 +269,11 @@ object Path {
   }
 
   def identicalPath[B,T,S,BB,TT,SS](p1: Path[B,T,S], p2: Path[BB,TT,SS]): Boolean =
-    p1.shows == p2.shows
+    p1.shows ≟ p2.shows
 
-  val posixCodec = PathCodec placeholder '/'
+  val posixCodec: PathCodec = PathCodec placeholder '/'
 
-  val windowsCodec = PathCodec placeholder '\\'
+  val windowsCodec: PathCodec = PathCodec placeholder '\\'
 
   final case class PathCodec(separator: Char, escape: String => String, unescape: String => String) {
 
@@ -277,7 +281,7 @@ object Path {
       val s = flatten("", ".", "..", escape, escape, path)
                 .intercalate(separator.toString)
 
-      maybeDir(path) ? (s + separator) | s
+      maybeDir(path) ? (s ⊹ separator.shows) | s
     }
 
     def printPath[B, T](path: Path[B, T, Sandboxed]): String =
@@ -289,7 +293,7 @@ object Path {
       rd: RelDir[Unsandboxed] => Z,
       ad: AbsDir[Unsandboxed] => Z)(str: String): Z =
     {
-      val segs = str.split(separator)
+      val segs = str.split(separator.toString)
       val isAbs = str.startsWith(separator.toString)
       val isDir = List(separator.toString, s"$separator.", s"$separator..").exists(str.endsWith) || str === "." || str === ".."
 
@@ -300,7 +304,7 @@ object Path {
         case seg   => base </> dir(unescape(seg))
       }
 
-      if (str == "")
+      if (str ≟ "")
         rd(Current)
       else if (isAbs && !isDir)
         af(segs.init.foldLeft[AbsDir[Unsandboxed]](rootDir[Unsandboxed])(folder) </> file[Unsandboxed](unescape(segs.last)))
@@ -352,10 +356,10 @@ object Path {
     }
 
     private val escapeRel = (s: String) =>
-      if (s == "..") $dotdot$ else if (s == ".") $dot$ else s
+      if (s ≟ "..") $dotdot$ else if (s ≟ ".") $dot$ else s
 
     private val unescapeRel = (s: String) =>
-      if (s == $dotdot$) ".." else if (s == $dot$) "." else s
+      if (s ≟ $dotdot$) ".." else if (s ≟ $dot$) "." else s
 
     private val $sep$ = "$sep$"
     private val $dot$ = "$dot$"
@@ -363,12 +367,12 @@ object Path {
   }
 
   implicit def PathShow[B,T,S]: Show[Path[B,T,S]] = new Show[Path[B,T,S]] {
-    override def show(v: Path[B,T,S]) = v match {
+    override def show(v: Path[B,T,S]): Cord = v match {
       case Current                => "currentDir"
       case Root                   => "rootDir"
-      case ParentIn(p)            => "parentDir(" + p.show + ")"
-      case FileIn(p, FileName(f)) => p.show + " </> file(" + f.show + ")"
-      case DirIn(p, DirName(d))   => p.show + " </> dir(" + d.show + ")"
+      case ParentIn(p)            => "parentDir(" ⊹ p.shows ⊹ ")"
+      case FileIn(p, FileName(f)) => p.shows ⊹ " </> file(" ⊹ f.shows ⊹ ")"
+      case DirIn(p, DirName(d))   => p.shows ⊹ " </> dir(" ⊹ d.shows ⊹ ")"
     }
   }
 
