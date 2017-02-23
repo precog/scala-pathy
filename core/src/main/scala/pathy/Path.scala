@@ -53,7 +53,23 @@ object Path {
       FileName(dropExtension.value + "." + f(extension))
   }
 
+  object FileName {
+    implicit val order: Order[FileName] =
+      Order.orderBy(_.value)
+
+    implicit val show: Show[FileName] =
+      Show.shows(_.value)
+  }
+
   final case class DirName(value: String) extends AnyVal
+
+  object DirName {
+    implicit val order: Order[DirName] =
+      Order.orderBy(_.value)
+
+    implicit val show: Show[DirName] =
+      Show.shows(_.value)
+  }
 
   // Note: this ADT allows invalid paths, but the exposed functions
   // of the package do not.
