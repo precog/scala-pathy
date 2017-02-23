@@ -19,8 +19,6 @@ package pathy
 import slamdata.Predef._
 import pathy.scalacheck._
 
-import java.lang.SuppressWarnings
-
 import org.specs2.mutable._
 import org.specs2.ScalaCheck
 import org.specs2.specification.core.Fragment
