@@ -85,9 +85,10 @@ lazy val tests = (project in file("tests"))
   .settings(Seq(
     name := "pathy-tests",
     libraryDependencies ++= Seq(
-      CommonDependencies.scalaz.core            % Test,
-      CommonDependencies.specs2.core            % Test,
-      CommonDependencies.specs2.scalacheck      % Test,
-      CommonDependencies.scalacheck.scalacheck  % Test
+      CommonDependencies.scalaz.core                                                 % Test,
+      CommonDependencies.specs2.core                                                 % Test,
+      CommonDependencies.specs2.scalacheck                                           % Test,
+      CommonDependencies.scalacheck.scalacheck                                       % Test,
+      "org.scalaz" %% "scalaz-scalacheck-binding" % CommonDependencies.scalazVersion % Test
     )
   ))
