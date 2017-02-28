@@ -293,7 +293,7 @@ object Path {
       rd: RelDir[Unsandboxed] => Z,
       ad: AbsDir[Unsandboxed] => Z)(str: String): Z =
     {
-      val segs = str.split(separator.toString)
+      val segs = str.split(separator)
       val isAbs = str.startsWith(separator.toString)
       val isDir = List(separator.toString, s"$separator.", s"$separator..").exists(str.endsWith) || str === "." || str === ".."
 
