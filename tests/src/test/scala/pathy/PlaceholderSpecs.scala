@@ -16,45 +16,57 @@
 
 package pathy
 
+import slamdata.Predef._
 import org.specs2.mutable.Specification
 import pathy.Path._
+import scalaz._, Scalaz._
 
-class PlaceholderSpecs extends Specification {
+abstract class PlaceholderSpecs(pathCodec: PathCodec) extends Specification {
 
-  import posixCodec._
   import ValidateCodec.validateIsLossless
+
+  val c: Char = pathCodec.separator
 
   "placeholder codec" in {
     "printPath" >> {
       "replaces separator in segments with placeholder" in {
-        unsafePrintPath(dir("foo/bar") </> dir("baz") </> file("qu/ux.txt")) must_== "./foo$sep$bar/baz/qu$sep$ux.txt"
+        PathCodec.placeholder(c)
+          .unsafePrintPath(dir(s"foo${c}bar") </> dir("baz") </> file(s"qu${c}ux.txt")) must_==
+            s".${c}foo$$sep$$bar${c}baz${c}qu$$sep$$ux.txt"
       }
 
       "replaces single dot dir name with placeholder" in {
-        unsafePrintPath(dir(".") </> file("config")) must_== "./$dot$/config"
+        PathCodec.placeholder(c)
+          .unsafePrintPath(dir(".") </> file("config")) must_== s".${c}$$dot$$${c}config"
       }
 
       "replaces double dot dir name with placeholder" in {
-        unsafePrintPath(dir("foo") </> dir("..") </> file("config")) must_== "./foo/$dotdot$/config"
+        PathCodec.placeholder(c)
+          .unsafePrintPath(dir("foo") </> dir("..") </> file("config")) must_== s".${c}foo${c}$$dotdot$$${c}config"
       }
     }
 
     "parsePath" >> {
       "reads separator ph in segments" in {
-        parseRelDir("foo/$sep$/bar/") must beSome(dir("foo") </> dir("/") </> dir("bar"))
+        PathCodec.placeholder(c)
+          .parseRelDir(s"foo${c}$$sep$$${c}bar${c}") must beSome(dir("foo") </> dir(c.shows) </> dir("bar"))
       }
 
       "reads single dot ph in segments" in {
-        parseRelFile("foo/$dot$/bar") must beSome(dir("foo") </> dir(".") </> file("bar"))
+        PathCodec.placeholder(c)
+          .parseRelFile(s"foo${c}$$dot$$${c}bar") must beSome(dir("foo") </> dir(".") </> file("bar"))
       }
 
       "reads double dot separator in segments" in {
-        parseRelFile("foo/bar/$dotdot$") must beSome(dir("foo") </> dir("bar") </> file(".."))
+        PathCodec.placeholder(c)
+          .parseRelFile(s"foo${c}bar${c}$$dotdot$$") must beSome(dir("foo") </> dir("bar") </> file(".."))
       }
     }
 
-    "posixCodec is lossless" in validateIsLossless(posixCodec)
-
-    "windowsCodec is lossless" in validateIsLossless(windowsCodec)
+    "PathCodec is lossless" in validateIsLossless(pathCodec)
   }
 }
+
+class PosixPlaceholderSpecs extends PlaceholderSpecs(posixCodec)
+
+class WindowsPlaceholderSpecs extends PlaceholderSpecs(windowsCodec)
