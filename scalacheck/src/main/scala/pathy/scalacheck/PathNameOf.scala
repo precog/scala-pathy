@@ -52,10 +52,10 @@ object PathNameOf {
   ////
 
   private[scalacheck] def genFileName[A: Arbitrary: Show]: Gen[FileName] =
-    genSegment[A].map(FileName)
+    genSegment[A].map(FileName(_))
 
   private[scalacheck] def genDirName[A: Arbitrary: Show]: Gen[DirName] =
-    genSegment[A].map(DirName)
+    genSegment[A].map(DirName(_))
 
   private def genSegment[A: Arbitrary: Show]: Gen[String] =
     Arbitrary.arbitrary[A] map (_.shows)
