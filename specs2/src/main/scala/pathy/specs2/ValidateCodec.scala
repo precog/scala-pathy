@@ -17,7 +17,8 @@
 package pathy
 
 import slamdata.Predef._
-import pathy.scalacheck._, Path._, PathyArbitrary._
+import pathy.Path._
+import pathy.scalacheck.PathyArbitrary._
 
 import org.specs2.mutable.SpecLike
 import org.specs2.specification.core.Fragment
