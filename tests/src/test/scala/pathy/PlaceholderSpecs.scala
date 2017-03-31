@@ -17,17 +17,15 @@
 package pathy
 
 import slamdata.Predef._
-import org.specs2.mutable.Specification
 import pathy.Path._
+
+import org.specs2.mutable.Spec
 import scalaz._, Scalaz._
 
-abstract class PlaceholderSpecs(pathCodec: PathCodec) extends Specification {
-
-  import ValidateCodec.validateIsLossless
-
+abstract class PlaceholderSpecs(pathCodec: PathCodec) extends Spec with ValidateCodec {
   val c: Char = pathCodec.separator
 
-  "placeholder codec" in {
+  "placeholder codec" >> {
     "printPath" >> {
       "replaces separator in segments with placeholder" in {
         PathCodec.placeholder(c)
@@ -47,23 +45,24 @@ abstract class PlaceholderSpecs(pathCodec: PathCodec) extends Specification {
     }
 
     "parsePath" >> {
+      /* Weirdly, in these examples must_=== compiles under scala 2.11 but not 2.10. */
       "reads separator ph in segments" in {
         PathCodec.placeholder(c)
-          .parseRelDir(s"foo${c}$$sep$$${c}bar${c}") must beSome(dir("foo") </> dir(c.shows) </> dir("bar"))
+          .parseRelDir(s"foo${c}$$sep$$${c}bar${c}") must_== Some(dir("foo") </> dir(c.shows) </> dir("bar"))
       }
 
       "reads single dot ph in segments" in {
         PathCodec.placeholder(c)
-          .parseRelFile(s"foo${c}$$dot$$${c}bar") must beSome(dir("foo") </> dir(".") </> file("bar"))
+          .parseRelFile(s"foo${c}$$dot$$${c}bar") must_== Some(dir("foo") </> dir(".") </> file("bar"))
       }
 
       "reads double dot separator in segments" in {
         PathCodec.placeholder(c)
-          .parseRelFile(s"foo${c}bar${c}$$dotdot$$") must beSome(dir("foo") </> dir("bar") </> file(".."))
+          .parseRelFile(s"foo${c}bar${c}$$dotdot$$") must_== Some(dir("foo") </> dir("bar") </> file(".."))
       }
     }
 
-    "PathCodec is lossless" in validateIsLossless(pathCodec)
+    "PathCodec is lossless" >> validateIsLossless(pathCodec)
   }
 }
 
