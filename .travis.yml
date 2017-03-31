@@ -1,8 +1,19 @@
 language: scala
 scala:
-  - 2.11.7
-  - 2.10.5
+  - 2.10.6
+  - 2.11.8
+  - 2.12.1
 jdk:
   - oraclejdk7
   - oraclejdk8
+matrix:
+  exclude: # NB: Scala 2.12 requires JDK 8
+  - scala: 2.12.1
+    jdk: oraclejdk7
 sudo: false
+script:
+  - sbt test transferPublishAndTagResources
+  - scripts/publishAndTag 'slamdata/scala-pathy'
+branches:
+  except:
+  - "/^v\\d+\\.\\d+\\.\\d+$/"

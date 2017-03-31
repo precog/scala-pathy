@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 - 2015 SlamData Inc.
+ * Copyright 2014–2017 SlamData Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,44 +16,56 @@
 
 package pathy
 
-import org.specs2.mutable.Spec
+import slamdata.Predef._
 import pathy.Path._
 
-class PlaceholderSpecs extends Spec with ValidateCodec {
-  import posixCodec._
+import org.specs2.mutable.Spec
+import scalaz._, Scalaz._
+
+abstract class PlaceholderSpecs(pathCodec: PathCodec) extends Spec with ValidateCodec {
+  val c: Char = pathCodec.separator
 
   "placeholder codec" >> {
     "printPath" >> {
       "replaces separator in segments with placeholder" in {
-        unsafePrintPath(dir("foo/bar") </> dir("baz") </> file("qu/ux.txt")) must_== "./foo$sep$bar/baz/qu$sep$ux.txt"
+        PathCodec.placeholder(c)
+          .unsafePrintPath(dir(s"foo${c}bar") </> dir("baz") </> file(s"qu${c}ux.txt")) must_==
+            s".${c}foo$$sep$$bar${c}baz${c}qu$$sep$$ux.txt"
       }
 
       "replaces single dot dir name with placeholder" in {
-        unsafePrintPath(dir(".") </> file("config")) must_== "./$dot$/config"
+        PathCodec.placeholder(c)
+          .unsafePrintPath(dir(".") </> file("config")) must_== s".${c}$$dot$$${c}config"
       }
 
       "replaces double dot dir name with placeholder" in {
-        unsafePrintPath(dir("foo") </> dir("..") </> file("config")) must_== "./foo/$dotdot$/config"
+        PathCodec.placeholder(c)
+          .unsafePrintPath(dir("foo") </> dir("..") </> file("config")) must_== s".${c}foo${c}$$dotdot$$${c}config"
       }
     }
 
     "parsePath" >> {
       /* Weirdly, in these examples must_=== compiles under scala 2.11 but not 2.10. */
       "reads separator ph in segments" in {
-        parseRelDir("foo/$sep$/bar/") must_== Some(dir("foo") </> dir("/") </> dir("bar"))
+        PathCodec.placeholder(c)
+          .parseRelDir(s"foo${c}$$sep$$${c}bar${c}") must_== Some(dir("foo") </> dir(c.shows) </> dir("bar"))
       }
 
       "reads single dot ph in segments" in {
-        parseRelFile("foo/$dot$/bar") must_== Some(dir("foo") </> dir(".") </> file("bar"))
+        PathCodec.placeholder(c)
+          .parseRelFile(s"foo${c}$$dot$$${c}bar") must_== Some(dir("foo") </> dir(".") </> file("bar"))
       }
 
       "reads double dot separator in segments" in {
-        parseRelFile("foo/bar/$dotdot$") must_== Some(dir("foo") </> dir("bar") </> file(".."))
+        PathCodec.placeholder(c)
+          .parseRelFile(s"foo${c}bar${c}$$dotdot$$") must_== Some(dir("foo") </> dir("bar") </> file(".."))
       }
     }
 
-    "posixCodec is lossless" >> validateIsLossless(posixCodec)
-
-    "windowsCodec is lossless" >> validateIsLossless(windowsCodec)
+    "PathCodec is lossless" >> validateIsLossless(pathCodec)
   }
 }
+
+class PosixPlaceholderSpecs extends PlaceholderSpecs(posixCodec)
+
+class WindowsPlaceholderSpecs extends PlaceholderSpecs(windowsCodec)

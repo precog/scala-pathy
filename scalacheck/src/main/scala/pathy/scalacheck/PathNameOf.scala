@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 - 2015 SlamData Inc.
+ * Copyright 2014–2017 SlamData Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package pathy.scalacheck
 
-import org.scalacheck.{Gen, Arbitrary}
+import slamdata.Predef._
 import pathy.Path.{DirName, FileName}
 
+import org.scalacheck.{Gen, Arbitrary}
 import scalaz.Show
 import scalaz.syntax.show._
 
@@ -51,10 +52,10 @@ object PathNameOf {
   ////
 
   private[scalacheck] def genFileName[A: Arbitrary: Show]: Gen[FileName] =
-    genSegment[A].map(FileName)
+    genSegment[A].map(FileName(_))
 
   private[scalacheck] def genDirName[A: Arbitrary: Show]: Gen[DirName] =
-    genSegment[A].map(DirName)
+    genSegment[A].map(DirName(_))
 
   private def genSegment[A: Arbitrary: Show]: Gen[String] =
     Arbitrary.arbitrary[A] map (_.shows)

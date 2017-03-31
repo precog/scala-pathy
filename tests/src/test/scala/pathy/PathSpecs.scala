@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 - 2015 SlamData Inc.
+ * Copyright 2014–2017 SlamData Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,38 @@
 
 package pathy
 
+import slamdata.Predef._
+import pathy.scalacheck._
+
+import scala.Predef.identity
+
+import org.scalacheck._, Arbitrary.arbitrary
+import org.specs2.ScalaCheck
 import org.specs2.mutable.Specification
+import scalaz.scalacheck.ScalazProperties._
 import scalaz.syntax.foldable._
 
-class PathSpecs extends Specification {
-  import Path._
+class PathSpecs extends Specification with ScalaCheck {
+  import Path._, PathyArbitrary._
+
+  "FileName" in {
+    "order laws" >> order.laws[FileName]
+  }
+
+  "DirName" in {
+    "order laws" >> order.laws[DirName]
+  }
+
+  "Path" in {
+    implicit val arbitraryPath: Arbitrary[Path[Any,Any,Sandboxed]] =
+      Arbitrary(Gen.oneOf(
+        arbitrary[AbsFile[Sandboxed]],
+        arbitrary[RelFile[Sandboxed]],
+        arbitrary[AbsDir[Sandboxed]],
+        arbitrary[RelDir[Sandboxed]]))
+
+    "order laws" >> order.laws[Path[Any,Any,Sandboxed]]
+  }
 
   "</> - ./../foo/" in {
     posixCodec.unsafePrintPath(parentDir1(currentDir) </> unsandbox(dir("foo"))) must_== "./../foo/"
