@@ -1,3 +1,3 @@
 resolvers += Resolver.sonatypeRepo("releases")
 
-addSbtPlugin("com.slamdata" % "sbt-slamdata" % "0.0.15")
+addSbtPlugin("com.slamdata" % "sbt-slamdata" % "0.5.1")
