@@ -9,7 +9,7 @@ lazy val specsVersion        = "3.8.6"
 
 lazy val baseSettings = commonBuildSettings ++ Seq(
   organization := "com.slamdata",
-  libraryDependencies += "com.slamdata" %% "slamdata-predef" % "0.0.4"
+  libraryDependencies += "com.slamdata" %% "slamdata-predef" % "0.0.6"
 )
 
 lazy val publishSettings = commonPublishSettings ++ Seq(
