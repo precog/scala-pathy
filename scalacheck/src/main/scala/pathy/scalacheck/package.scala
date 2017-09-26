@@ -46,6 +46,7 @@ package object scalacheck {
     * No element is ever generated with a size parameter of less than 1, and
     * each "cons cell" consumes one unit of size.
     */
+  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
   def sizeDistributedListOfNonEmpty[A](g: Gen[A]): Gen[List[A]] =
     Gen.size.flatMap { n =>
       if (n < 1) Gen.const(Nil)

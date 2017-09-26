@@ -118,6 +118,7 @@ object Path {
 
   implicit class PathOps[B,T,S](path: Path[B,T,S]) {
     def relativeTo[SS](dir: Path[B, Dir, SS]): Option[Path[Rel, T, SS]] = {
+      @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
       def go[TT](p1: Path[B,TT,S], p2: Path[B,Dir,SS]): Option[Path[Rel,TT,SS]] =
         if (identicalPath(p1, p2)) Some(Current)
         else peel(p1) match {
@@ -134,6 +135,7 @@ object Path {
   }
 
   implicit class DirOps[B,S](dir: Path[B, Dir, S]) {
+    @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
     def </>[T](rel: Path[Rel, T, S]): Path[B, T, S] =
       (dir, rel) match {
         case (Current,        Current) => Current
@@ -179,6 +181,7 @@ object Path {
   def maybeFile[B,T,S](path: Path[B,T,S]): Option[Path[B, File, S]] =
     refineType(path).toOption
 
+  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
   def peel[B,T,S](path: Path[B,T,S]): Option[(Path[B, Dir, S], DirName \/ FileName)] = path match {
     case Current         => None
     case Root            => None
@@ -189,6 +192,7 @@ object Path {
     case FileIn(p, f)    => Some(unsafeCoerceType(p) ->  \/-(f))
   }
 
+  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
   def depth[B,T,S](path: Path[B,T,S]): Int = path match {
     case Current      => 0
     case Root         => 0
@@ -205,6 +209,7 @@ object Path {
     case _            => sys.error("impossible!")
   }
 
+  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
   def unsandbox[B,T,S](path: Path[B,T,S]): Path[B, T, Unsandboxed] = path match {
     case Current      => Current
     case Root         => Root
@@ -220,6 +225,7 @@ object Path {
   def parentDir1[B,T,S](path: Path[B,T,S]): Path[B, Dir, Unsandboxed] =
     ParentIn(unsafeCoerceType(unsandbox(path)))
 
+  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
   private def unsafeCoerceType[B,T,TT,S](path: Path[B,T,S]): Path[B,TT,S] = path match {
     case Current      => Current
     case Root         => Root
@@ -243,6 +249,7 @@ object Path {
   def canonicalize[B,T,S](path: Path[B,T,S]): Path[B,T,S] =
     canonicalize1(path)._2
 
+  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
   private def canonicalize1[B,T,S](path: Path[B,T,S]): (Boolean, Path[B,T,S]) =
     path match {
       case Current                => false -> Current
@@ -383,6 +390,7 @@ object Path {
   }
 
   implicit def pathShow[B,T,S]: Show[Path[B,T,S]] = new Show[Path[B,T,S]] {
+    @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
     override def show(v: Path[B,T,S]): Cord = v match {
       case Current                => "currentDir"
       case Root                   => "rootDir"
