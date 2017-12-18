@@ -81,6 +81,15 @@ class PathSpecs extends Specification with ScalaCheck {
     }
   }
 
+  "relativeTo" >> {
+    "simple case" >> {
+      (rootDir </> dir("foo")).relativeTo(rootDir) must_=== Some(dir("foo"))
+    }
+    "return currentDir if same path" >> {
+      (rootDir </> dir("foo")).relativeTo(rootDir </> dir("foo")) must_=== Some(currentDir)
+    }
+  }
+
   "renameFile - single level deep" in {
     renameFile(file("image.png"), _.dropExtension) must_== file("image")
   }
