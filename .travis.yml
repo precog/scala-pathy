@@ -1,14 +1,17 @@
 language: scala
 scala:
-  - 2.10.7
-  - 2.11.8
-  - 2.12.1
-jdk:
-  - openjdk8
+  - 2.12.10
+  - 2.13.1
+
+jdk: openjdk8
+
 sudo: false
+
 script:
+  - set -e
   - sbt test transferPublishAndTagResources
   - scripts/publishAndTag 'slamdata/scala-pathy'
+
 branches:
   except:
-  - "/^v\\d+\\.\\d+\\.\\d+$/"
+    - "/^v\\d+\\.\\d+\\.\\d+$/"
