@@ -1,15 +1,13 @@
 import sbt._, Keys._
 
-import slamdata.SbtSlamData.transferPublishAndTagResources
-
-lazy val argonautVersion     = "6.2"
-lazy val scalazVersion       = "7.2.15"
-lazy val scalacheckVersion   = "1.13.4"
-lazy val specsVersion        = "3.8.6"
+lazy val argonautVersion     = "6.2.3"
+lazy val scalazVersion       = "7.2.30"
+lazy val scalacheckVersion   = "1.14.3"
+lazy val specsVersion        = "4.8.2"
 
 lazy val baseSettings = commonBuildSettings ++ Seq(
   organization := "com.slamdata",
-  libraryDependencies += "com.slamdata" %% "slamdata-predef" % "0.0.6"
+  libraryDependencies += "com.slamdata" %% "slamdata-predef" % "0.1.0"
 )
 
 lazy val publishSettings = commonPublishSettings ++ Seq(
@@ -30,7 +28,6 @@ lazy val root = (project in file("."))
   .aggregate(core, argonaut, scalacheck, tests)
   .settings(allSettings)
   .settings(noPublishSettings)
-  .settings(transferPublishAndTagResources)
   .settings(Seq(
     name := "pathy"
   ))
@@ -92,7 +89,7 @@ lazy val tests = (project in file("tests"))
     name := "pathy-tests",
     libraryDependencies ++= Seq(
       "org.scalaz"     %% "scalaz-core"               % scalazVersion                        % Test,
-      "org.scalaz"     %% "scalaz-scalacheck-binding" % (scalazVersion + "-scalacheck-1.13") % Test,
+      "org.scalaz"     %% "scalaz-scalacheck-binding" % (scalazVersion + "-scalacheck-1.14") % Test,
       "org.scalacheck" %% "scalacheck"                % scalacheckVersion                    % Test,
       "org.specs2"     %% "specs2-core"               % specsVersion                         % Test,
       "org.specs2"     %% "specs2-scalacheck"         % specsVersion                         % Test

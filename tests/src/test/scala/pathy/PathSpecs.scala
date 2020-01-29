@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2017 SlamData Inc.
+ * Copyright 2014–2020 SlamData Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,10 +83,10 @@ class PathSpecs extends Specification with ScalaCheck {
 
   "relativeTo" >> {
     "simple case" >> {
-      (rootDir </> dir("foo")).relativeTo(rootDir) must_=== Some(dir("foo"))
+      (rootDir </> dir("foo")).relativeTo(rootDir) must_== Some(dir("foo"))
     }
     "return currentDir if same path" >> {
-      (rootDir </> dir("foo")).relativeTo(rootDir </> dir("foo")) must_=== Some(currentDir)
+      (rootDir </> dir("foo")).relativeTo(rootDir </> dir("foo")) must_== Some(currentDir)
     }
   }
 
