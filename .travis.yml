@@ -45,6 +45,6 @@ after_success: scripts/discordTravisPost success https://discordapp.com/api/webh
 after_failure: scripts/discordTravisPost failure https://discordapp.com/api/webhooks/$DISCORD_WEBHOOK_TOKENS
 
 branches:
-  except:
+  only:
     - master
     - /^backport.*$/
