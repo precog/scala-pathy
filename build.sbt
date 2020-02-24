@@ -1,6 +1,6 @@
 import sbt._, Keys._
 
-lazy val argonautVersion     = "6.2.3"
+lazy val argonautVersion     = "6.3.0-M2"
 lazy val scalazVersion       = "7.2.30"
 lazy val scalacheckVersion   = "1.14.3"
 lazy val specsVersion        = "4.8.2"
