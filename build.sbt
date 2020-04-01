@@ -1,28 +1,29 @@
 import sbt._, Keys._
 
+ThisBuild / organization := "com.slamdata"
+
+ThisBuild / homepage := Some(url("https://github.com/precog/scala-pathy"))
+ThisBuild / scmInfo := Some(
+  ScmInfo(
+    url("https://github.com/precog/scala-pathy"),
+    "scm:git@github.com:precog/scala-pathy.git"))
+
+ThisBuild / githubRepository := "scala-pathy"
+ThisBuild / publishAsOSSProject := true
+
+ThisBuild / crossScalaVersions := Seq("2.13.1", "2.12.11", "2.11.12")
+ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.head
+
 lazy val argonautVersion     = "6.2.3"
 lazy val scalazVersion       = "7.2.30"
 lazy val scalacheckVersion   = "1.14.3"
 lazy val specsVersion        = "4.8.2"
 
 lazy val baseSettings = commonBuildSettings ++ Seq(
-  organization := "com.slamdata",
-  libraryDependencies += "com.slamdata" %% "slamdata-predef" % "0.1.1"
+  libraryDependencies += "com.slamdata" %% "slamdata-predef" % "0.1.2"
 )
 
-lazy val publishSettings = commonPublishSettings ++ Seq(
-  organizationName := "SlamData Inc.",
-  organizationHomepage := Some(url("http://slamdata.com")),
-  homepage := Some(url("https://github.com/slamdata/scala-pathy")),
-  scmInfo := Some(
-    ScmInfo(
-      url("https://github.com/slamdata/scala-pathy"),
-      "scm:git@github.com:slamdata/scala-pathy.git"
-    )
-  ))
-
-lazy val allSettings =
-  baseSettings ++ publishSettings
+lazy val allSettings = baseSettings
 
 lazy val root = (project in file("."))
   .aggregate(core, argonaut, scalacheck, tests)
@@ -33,7 +34,6 @@ lazy val root = (project in file("."))
   ))
 
 lazy val core = (project in file("core"))
-  .enablePlugins(AutomateHeaderPlugin)
   .settings(allSettings)
   .settings(Seq(
     name := "pathy-core",
@@ -45,7 +45,6 @@ lazy val core = (project in file("core"))
 
 lazy val argonaut = (project in file("argonaut"))
   .dependsOn(core, scalacheck)
-  .enablePlugins(AutomateHeaderPlugin)
   .settings(allSettings)
   .settings(Seq(
     name := "pathy-argonaut",
@@ -58,7 +57,6 @@ lazy val argonaut = (project in file("argonaut"))
 
 lazy val scalacheck = (project in file("scalacheck"))
   .dependsOn(core)
-  .enablePlugins(AutomateHeaderPlugin)
   .settings(allSettings)
   .settings(Seq(
     name := "pathy-scalacheck",
@@ -70,7 +68,6 @@ lazy val scalacheck = (project in file("scalacheck"))
 
 lazy val specs2 = (project in file("specs2"))
   .dependsOn(scalacheck)
-  .enablePlugins(AutomateHeaderPlugin)
   .settings(allSettings)
   .settings(Seq(
     name := "pathy-specs2",
@@ -82,7 +79,6 @@ lazy val specs2 = (project in file("specs2"))
 
 lazy val tests = (project in file("tests"))
   .dependsOn(core, scalacheck, specs2)
-  .enablePlugins(AutomateHeaderPlugin)
   .settings(allSettings)
   .settings(noPublishSettings)
   .settings(Seq(
