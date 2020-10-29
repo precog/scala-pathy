@@ -11,13 +11,13 @@ ThisBuild / scmInfo := Some(
 ThisBuild / githubRepository := "scala-pathy"
 ThisBuild / publishAsOSSProject := true
 
-ThisBuild / crossScalaVersions := Seq("2.13.1", "2.12.11", "2.11.12")
+ThisBuild / crossScalaVersions := Seq("2.13.1", "2.12.12", "2.11.12")
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.head
 
-lazy val argonautVersion     = "6.2.3"
+lazy val argonautVersion     = "6.3.0-M2"
 lazy val scalazVersion       = "7.2.30"
 lazy val scalacheckVersion   = "1.14.3"
-lazy val specsVersion        = "4.8.2"
+lazy val specsVersion        = "4.10.5"
 
 lazy val baseSettings = commonBuildSettings ++ Seq(
   libraryDependencies += "com.slamdata" %% "slamdata-predef" % "0.1.2"
