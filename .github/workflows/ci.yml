@@ -29,7 +29,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.1, 2.12.12, 2.11.12]
+        scala: [2.13.1, 2.12.12]
         java: [adopt@1.8, graalvm8@20.1.0]
     runs-on: ${{ matrix.os }}
     steps:
@@ -201,12 +201,6 @@ jobs:
           name: target-${{ matrix.os }}-2.12.12-${{ matrix.java }}-target
           path: target
 
-      - name: Download target directory 'target' (2.11.12)
-        uses: actions/download-artifact@v1
-        with:
-          name: target-${{ matrix.os }}-2.11.12-${{ matrix.java }}-target
-          path: target
-
       - name: Download target directory 'argonaut/target' (2.13.1)
         uses: actions/download-artifact@v1
         with:
@@ -217,12 +211,6 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: target-${{ matrix.os }}-2.12.12-${{ matrix.java }}-argonaut_target
-          path: argonaut/target
-
-      - name: Download target directory 'argonaut/target' (2.11.12)
-        uses: actions/download-artifact@v1
-        with:
-          name: target-${{ matrix.os }}-2.11.12-${{ matrix.java }}-argonaut_target
           path: argonaut/target
 
       - name: Download target directory 'tests/target' (2.13.1)
@@ -237,12 +225,6 @@ jobs:
           name: target-${{ matrix.os }}-2.12.12-${{ matrix.java }}-tests_target
           path: tests/target
 
-      - name: Download target directory 'tests/target' (2.11.12)
-        uses: actions/download-artifact@v1
-        with:
-          name: target-${{ matrix.os }}-2.11.12-${{ matrix.java }}-tests_target
-          path: tests/target
-
       - name: Download target directory 'scalacheck/target' (2.13.1)
         uses: actions/download-artifact@v1
         with:
@@ -253,12 +235,6 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: target-${{ matrix.os }}-2.12.12-${{ matrix.java }}-scalacheck_target
-          path: scalacheck/target
-
-      - name: Download target directory 'scalacheck/target' (2.11.12)
-        uses: actions/download-artifact@v1
-        with:
-          name: target-${{ matrix.os }}-2.11.12-${{ matrix.java }}-scalacheck_target
           path: scalacheck/target
 
       - name: Download target directory 'core/target' (2.13.1)
@@ -273,12 +249,6 @@ jobs:
           name: target-${{ matrix.os }}-2.12.12-${{ matrix.java }}-core_target
           path: core/target
 
-      - name: Download target directory 'core/target' (2.11.12)
-        uses: actions/download-artifact@v1
-        with:
-          name: target-${{ matrix.os }}-2.11.12-${{ matrix.java }}-core_target
-          path: core/target
-
       - name: Download target directory 'specs2/target' (2.13.1)
         uses: actions/download-artifact@v1
         with:
@@ -289,12 +259,6 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: target-${{ matrix.os }}-2.12.12-${{ matrix.java }}-specs2_target
-          path: specs2/target
-
-      - name: Download target directory 'specs2/target' (2.11.12)
-        uses: actions/download-artifact@v1
-        with:
-          name: target-${{ matrix.os }}-2.11.12-${{ matrix.java }}-specs2_target
           path: specs2/target
 
       - name: Download target directory 'project/target'

@@ -11,7 +11,7 @@ ThisBuild / scmInfo := Some(
 ThisBuild / githubRepository := "scala-pathy"
 ThisBuild / publishAsOSSProject := true
 
-ThisBuild / crossScalaVersions := Seq("2.13.1", "2.12.12", "2.11.12")
+ThisBuild / crossScalaVersions := Seq("2.13.1", "2.12.12")
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.head
 
 lazy val argonautVersion     = "6.3.0-M2"
